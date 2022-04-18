@@ -33,6 +33,8 @@ class Calendar:
             with open('token.json', 'w') as token:
                 token.write(self.creds.to_json())
 
+    def add_event(self, start_time, end_time):
+        pass
 
     def test(self):
         """Shows basic usage of the Google Calendar API.
