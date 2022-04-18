@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+	<link rel="stylesheet" href="calendar.css">
+	<title>Calendar</title>
+
+    <script src="events.js"></script>
+    <script src="calendar.js"></script>
+</head>
+<body>
+<div id="viewport">
+
+    <div id="calendar">
+        <div id="week-select">
+            <div class="button clickable">&lt;</div>
+            <h3 id="current">Week of <span id="currentText" class="clickable"></span></h3>
+            <div class="button clickable">&gt;</div>
+        </div>
+        <div id="week-view">
+            <div id="timeMarks">
+                <p>7:00 AM</p>
+                <p>8:00 AM</p>
+                <p>9:00 AM</p>
+                <p>10:00 AM</p>
+                <p>11:00 AM</p>
+                <p>12:00 PM</p>
+                <p>1:00 PM</p>
+                <p>2:00 PM</p>
+                <p>3:00 PM</p>
+                <p>4:00 PM</p>
+                <p>5:00 PM</p>
+                <p>6:00 PM</p>
+                <p>7:00 PM</p>
+                <p>8:00 PM</p>
+            </div>
+            <table id="daygrid">
+                <thead>
+                    <tr>
+                        <th>Sun</th>
+                        <th>Mon</th>
+                        <th>Tue</th>
+                        <th>Wed</th>
+                        <th>Thu</th>
+                        <th>Fri</th>
+                        <th>Sat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
+
