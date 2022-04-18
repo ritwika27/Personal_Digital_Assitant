@@ -6,7 +6,7 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
 if rank == Dreamer.SCHEDULER:
-    c = Calendar()
-    c.run(rank, comm)
+    # c = Calendar()
+    Calendar.run(rank, comm)
 elif rank == Dreamer.WEATHERMAN:
     print("i am rank 1")

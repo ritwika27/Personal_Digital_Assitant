@@ -33,9 +33,10 @@ class Calendar:
             with open('token.json', 'w') as token:
                 token.write(self.creds.to_json())
 
-    def run(self, rank, comm):
+    def run(rank, comm):
+        c = Calendar()
         print("i am " + str(rank))
-        self.test()
+        c.test()
 
     def add_event(self, start_time, end_time):
         pass
