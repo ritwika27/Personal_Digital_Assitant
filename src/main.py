@@ -1,12 +1,12 @@
 from mpi4py import MPI
+from dreamer_enum import Dreamer
+from pdacalendar import Calendar
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
-if rank == 0:
-    data = {'a': "function name", 'b': 3.14}
-    comm.send(data, dest=1, tag=11)
-elif rank == 1:
-    data = comm.recv(source=0, tag=11)
-    print(data['a'])
-    print("value is " + str(data['b']))
+if rank == Dreamer.SCHEDULER:
+    c = Calendar()
+    c.run(rank, comm)
+elif rank == Dreamer.WEATHERMAN:
+    print("i am rank 1")
