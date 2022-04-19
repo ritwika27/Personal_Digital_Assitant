@@ -1,12 +1,13 @@
 from mpi4py import MPI
-from dreamer_enum import Dreamer
+from destination_enum import Dest
 from pdacalendar import Calendar
+from dummy_process import Dummy
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
-if rank == Dreamer.SCHEDULER:
+if rank == Dest.SCHEDULER:
     # c = Calendar()
     Calendar.run(rank, comm)
-elif rank == Dreamer.WEATHERMAN:
-    print("i am rank 1")
+elif rank == Dest.WEATHERMAN:
+    Dummy.run(rank, comm)
