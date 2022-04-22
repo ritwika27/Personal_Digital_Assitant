@@ -5,6 +5,7 @@ function initializeListeners() {
     document.querySelector("#week-select div:first-child").onclick = () => changeWeek(-1);
     document.querySelector("#week-select div:last-child").onclick = () => changeWeek(1);
     document.getElementById("currentText").onclick = openWeekSelector;
+    document.getElementById("addEvent").onclick = openAddEventForm;
 }
 
 window.addEventListener('load', initializeCalendar);
@@ -181,4 +182,30 @@ function popup(content, callback) {
 function openWeekSelector() {
     const fill = document.createTextNode("Week selection not implemented. Imagine one of those calendar selectors.");
     popup(fill);
+}
+
+function openAddEventForm() {
+    const shell = document.createElement("div");
+    shell.innerHTML = `
+        <form id="addEventForm" action="/addEvent">
+            <span>
+                <label for="eventName">Event Name</label>
+                <input id="eventName" name="title" required></input>
+            </span>
+            <span>
+                <label for="startTime">Start Time</label>
+                <input id="startTime" name="start" type="datetime-local" required></input>
+            </span>
+            <span>
+                <label for="endTime">End Time</label>
+                <input id="endTime" name="end" type="datetime-local" required></input>
+            </span>
+            <span>
+                <label for="location">Location</label>
+                <input id="location" name="address" required></input>
+            </span>
+            <input type="submit" value="Add Event"></input>
+        </form>
+    `;
+    popup(shell);
 }

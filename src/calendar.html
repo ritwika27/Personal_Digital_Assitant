@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-	<link rel="stylesheet" href="calendar.css">
+	<link rel="stylesheet" href="styles/calendar.css">
+	<link rel="stylesheet" href="styles/fontawesome-free-5.15.1-web/css/fontawesome.css">
+	<link rel="stylesheet" href="styles/fontawesome-free-5.15.1-web/css/solid.css">
 	<title>Calendar</title>
 
     <script src="events.js"></script>
@@ -12,6 +14,7 @@
 <div id="viewport">
 
     <div id="calendar">
+        <div id="addEvent" class="clickable"><i class="fas fa-plus"></i></div>
         <div id="week-select">
             <div class="button clickable">&lt;</div>
             <h3 id="current">Week of <span id="currentText" class="clickable"></span></h3>
