@@ -19,8 +19,6 @@ class Actor():
 
     def send(self, msg):
         assert isinstance(msg, Message)
-        print(msg.get_receiver())
-        print(msg.get_msg_type())
         self.comm.send(msg.get_msg(), dest=msg.get_receiver(), tag=msg.get_msg_type())
 
     def irecv(self):
