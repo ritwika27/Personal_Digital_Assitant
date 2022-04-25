@@ -1,0 +1,1 @@
+export PMIX_MCA_gds=hash

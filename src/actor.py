@@ -12,7 +12,7 @@ class Actor():
 
     def isend(self, msg):
         assert isinstance(msg, Message)
-        comm.isend(msg.msg, dest=msg.dest, tag=msg.tag)
+        self.comm.isend(msg.msg, dest=msg.receiver, tag=msg.msg_type)
 
     # def send(msg, dest=dest, tag=tag)
     #     comm.send(msg, dest=dest, tag=tag)
