@@ -31,7 +31,7 @@ def preferences():
   con.close()
 
   print(pref)
-  data = json.dumps(pref)
+  data = json.dumps(pref, default=str)
   resp = Response(data, status=200, mimetype='application/json')
   print(resp)
   return resp
