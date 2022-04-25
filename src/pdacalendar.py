@@ -48,7 +48,7 @@ class Calendar:
             print("i am " + str(rank) + " received message " + msg["msg"] + " from " + str(status.Get_source()) + " tag: " + str(tag))
             print(msg)
             sys.stdout.flush()
-            time.sleep(5)
+            time.sleep(1)
             msg["msg"] = "pong"
             comm.isend(msg, dest=Dest.WEATHERMAN, tag=Msg_type.NEW_LOCATION)
 
