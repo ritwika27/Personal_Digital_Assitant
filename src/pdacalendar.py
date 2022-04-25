@@ -47,7 +47,7 @@ class Calendar:
 
     def run(rank, comm):
         print("initializing")
-        c = Calendar()
+        # c = Calendar()
         a = Actor(rank, comm)
         while True:
             msg = a.recv()
