@@ -15,9 +15,13 @@ def renderPage():
 @app.route('/preferences')
 def preferences():
   con = psycopg2.connect(
-            database = "postgres",
-            user = "farnazzamiri",
-            password = "pgadmin")
+            #database = "postgres",
+            #user = "farnazzamiri",
+            #password = "pgadmin"
+            database = "pda",
+            user = "postgres",
+            password = "pdapassword"
+            )
   cur = con.cursor()
 
   cur.execute(f"""
@@ -31,10 +35,13 @@ def preferences():
   con.close()
 
   print(pref)
-  data = json.dumps(pref)
+  data = json.dumps(pref, default=str)
   resp = Response(data, status=200, mimetype='application/json')
   print(resp)
   return resp
 
 if __name__ == "__main__":
   app.run(debug=True,port=8000)
+
+def flaskrun(rank, comm):
+    app.run(debug=True, port=8000)
