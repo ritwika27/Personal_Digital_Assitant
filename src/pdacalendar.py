@@ -4,15 +4,22 @@ import datetime
 import time
 import sys
 import os.path
-from destination_enum import Dest
+from mpi4py import MPI
 
+# self defined modules
+from destination_enum import Dest
+from msg_enum import Msg_type
+from actor import Actor
+from message import Message
+
+# google related modules
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from mpi4py import MPI
-from msg_enum import Msg_type
+
+
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -40,17 +47,16 @@ class Calendar:
 
     def run(rank, comm):
         print("initializing")
-        c = Calendar()
-        status = MPI.Status()
+        # c = Calendar()
+        a = Actor(rank, comm)
         while True:
-            msg = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
-            tag = status.Get_tag()
-            print("i am " + str(rank) + " received message " + msg["msg"] + " from " + str(status.Get_source()) + " tag: " + str(tag))
-            print(msg)
+            msg = a.recv()
+            # print("i am " + str(rank) + " received message " + msg.msg["msg"] + " from " + str(msg.sender) + " tag: " + str(msg.msg_type) + " time: " + str(msg.msg["date"]))
+            print("i am " + str(rank) + " received message " + str(msg.msg) + " from " + str(msg.sender) + " tag: " + str(msg.msg_type))
             sys.stdout.flush()
-            time.sleep(5)
-            msg["msg"] = "pong"
-            comm.isend(msg, dest=Dest.WEATHERMAN, tag=Msg_type.NEW_LOCATION)
+            time.sleep(1)
+            msg.msg["msg"] = "pong"
+            a.send(msg.reply(msg.msg, msg.msg_type))
 
 
 
