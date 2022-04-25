@@ -3,6 +3,8 @@ from destination_enum import Dest
 from pdacalendar import Calendar
 from dummy_process import Dummy
 
+from server import *
+
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
@@ -11,8 +13,9 @@ if rank == Dest.SCHEDULER:
     Calendar.run(rank, comm)
 elif rank == Dest.WEATHERMAN:
     Dummy.run(rank, comm)
-elif rank == Dest.TIMEKEEPER:
-    Timekeeper.run(rank, comm)
+elif rank == Dest.WEB:
+    flaskrun(rank, comm)
 
-    #flask?
+# elif rank == Dest.TIMEKEEPER:
+    # Timekeeper.run(rank, comm)
 
