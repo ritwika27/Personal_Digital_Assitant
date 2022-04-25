@@ -1,6 +1,3 @@
-#dummy file for message test purposes
-
-
 from mpi4py import MPI
 from msg_enum import Msg_type
 from destination_enum import Dest
@@ -34,7 +31,7 @@ class Weatherman:
         m = Message(msg = w.generate_intialized_msg(2), receiver = Dest.SCHEDULER, msg_type=Msg_type.INITIALIZED, sender = rank)
         a.send(m)
         i = 0
-        
+        print("hello")
         while True:
             msg = a.recv()
 

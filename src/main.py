@@ -14,8 +14,8 @@ if rank == Dest.SCHEDULER:
     Calendar.run(rank, comm)
 elif rank == Dest.WEATHERMAN:
     Weatherman.run(rank, comm)
-elif rank == Dest.WEB:
-    flaskrun(rank, comm)
+# elif rank == Dest.WEB:
+#     flaskrun(rank, comm)
 
 # elif rank == Dest.TIMEKEEPER:
     # Timekeeper.run(rank, comm)
