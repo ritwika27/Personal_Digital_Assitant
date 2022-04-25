@@ -29,7 +29,7 @@ class Actor():
         status = MPI.Status()
         msg = self.comm.wait(status)
         tag = status.Get_tag()
-        return Message(msg=msg, msg_type=tag, sender=satus.Get_source(), receiver=self.rank)
+        return Message(msg=msg, msg_type=tag, sender=status.Get_source(), receiver=self.rank)
 
     def recv(self):
         status = MPI.Status()
