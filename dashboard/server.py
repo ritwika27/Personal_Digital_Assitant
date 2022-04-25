@@ -3,14 +3,19 @@ try:
     import simplejson as json
 except ImportError:
     import json
-from flask import Flask,request,Response,render_template
+from flask import Flask,request,Response,render_template, redirect, url_for
 import psycopg2
 
 app = Flask(__name__)
 
 @app.route('/')
 def renderPage():
-  return render_template("index.html")
+  return render_template("calendar.html")
+
+@app.route('/addEvent', methods=['GET', 'POST'])
+def addEvent():
+  print(request)
+  return redirect(url_for('renderPage'))
 
 @app.route('/preferences')
 def preferences():
