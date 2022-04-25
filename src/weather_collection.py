@@ -1,6 +1,6 @@
 import requests as rq
 import json
-import datetime 
+from datetime import datetime 
 import time
 
 api_key = '46174eb744bf1b113afbf6ddb0108b7d'
@@ -13,7 +13,7 @@ def convert_utc_to_unix(utc):
 # params: unix time as a string
 # returns datetime object
 def convert_unix_time_to_utc(unix_time):
-    return datetime.datetime.fromtimestamp(unix_time, datetime.timezone.utc)
+    return datetime.fromtimestamp(unix_time, datetime.timezone.utc)
 
 #for demo, returns an array with [temp, precip, wind_speed]
 def get_current_weather_info(lat, lon): 
