@@ -20,7 +20,7 @@ class Weatherman:
       self.locations = {}
         
     def generate_intialized_msg(self, event_id):
-        return {"event_id": event_id, "msg": "weatherman_intialized", "date": datetime.now()}
+        return {"event_id": event_id, "msg": "weatherman_intialized", "date": datetime.datetime.now()}
     def generate_weather_msg(self, event_id, temp, precip, wind_speed):
         return {"event_id": event_id, "temp": temp, "current_precip": precip, "wind_speed": wind_speed, "msg": "weather_info", "date": datetime.now()}
 

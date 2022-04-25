@@ -22,8 +22,12 @@ actor = None
 
 @app.route('/')
 def renderPage():
-  print("response")
-  return render_template("index.html")
+  return render_template("calendar.html")
+
+@app.route('/addEvent', methods=['GET', 'POST'])
+def addEvent():
+  print(request)
+  return redirect(url_for('renderPage'))
 
 @app.route('/preferences')
 def preferences():
