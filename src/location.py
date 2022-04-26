@@ -3,3 +3,6 @@ class Location:
         self.lat = lat
         self.lon = lon
         self.address = address
+
+    def __str__(self):
+        return "lat: {}\tlong: {}\taddress: {}".format(self.lat, self.lon, self.address)

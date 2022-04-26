@@ -5,6 +5,9 @@ import time
 import sys
 import os.path
 from mpi4py import MPI
+import requests
+import logging
+import json
 
 # self defined modules
 from destination_enum import Dest
@@ -55,9 +58,35 @@ class Calendar:
             # print("i am " + str(rank) + " received message " + msg.msg["msg"] + " from " + str(msg.sender) + " tag: " + str(msg.msg_type) + " time: " + str(msg.msg["date"]))
             print("i am " + str(rank) + " received message " + str(msg.msg) + " from " + str(msg.sender) + " tag: " + str(msg.msg_type))
             sys.stdout.flush()
-            time.sleep(1)
-            msg.msg["msg"] = "pong"
-            a.send(msg.reply(msg.msg, msg.msg_type))
+            # a.send(msg.reply(msg.msg, msg.msg_type))
+
+            if msg.msg_type == Msg_type.NEW_EVENT:
+                # geo lookup
+                address = msg.msg['location'].address
+                key = 'AIzaSyCp1gIoicaGeLz2JBxkL9Mb-fal9bEVLkI'
+                r = requests.get('https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}'.format(address, key)).json()
+                logging.debug(r)
+                msg.msg['location'].lat = r['results'][0]['geometry']['location']['lat']
+                msg.msg['location'].lon = r['results'][0]['geometry']['location']['lng']
+                logging.debug(msg.msg)
+
+                # broadcasting new event
+                # send to weatherman
+                msg.sender = rank
+                msg.receiver = Dest.WEATHERMAN
+                a.send(msg)
+
+                # send to navigator
+                msg.sender = rank
+                msg.receiver = Dest.NAVIGATOR
+                a.send(msg)
+
+                # send to TIMEKEEPER
+                msg.sender = rank
+                msg.receiver = Dest.TIMEKEEPER
+                a.send(msg)
+
+
 
     def add_event(self, start_time, end_time):
         pass
