@@ -162,3 +162,4 @@ cython_debug/
 #authorization token file created by google api
 token.json
 credentials.json
+APIkey.txt
