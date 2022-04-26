@@ -6,6 +6,7 @@ class Msg_type(IntEnum):
     INITIALIZED=1
     UPDATE_ESTIMATE=2
     STATUS=3
+    UPDATE_WEATHER=4
 
-    CURR_WEATHER=4 # for demo
+    CURR_WEATHER=5 # for demo
 

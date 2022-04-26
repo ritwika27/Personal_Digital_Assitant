@@ -51,6 +51,7 @@ class Calendar:
         # c = Calendar()
         a = Actor(rank, comm)
         while True:
+            print("hi")
             msg = a.recv()
             # print("i am " + str(rank) + " received message " + msg.msg["msg"] + " from " + str(msg.sender) + " tag: " + str(msg.msg_type) + " time: " + str(msg.msg["date"]))
             print("i am " + str(rank) + " received message " + str(msg.msg) + " from " + str(msg.sender) + " tag: " + str(msg.msg_type))
@@ -58,6 +59,7 @@ class Calendar:
             time.sleep(1)
             msg.msg["msg"] = "pong"
             a.send(msg.reply(msg.msg, msg.msg_type))
+            a.send(Message(msg = "update_weather", receiver = Dest.WEATHERMAN, msg_type=Msg_type.UPDATE_WEATHER, sender = rank ))
 
     def add_event(self, start_time, end_time):
         pass
