@@ -37,15 +37,16 @@ class Weatherman:
             msg = a.recv()
 
             tag = msg.get_msg_type()
+            print(tag)
             print("i am " + str(rank) + " received message " + str(msg.msg) + " from " + str(msg.sender) + " tag: " + str(msg.msg_type))
 
-            if tag == Msg_type.UPDATE_WEATHER:
-                #event_id = msg["event_id"]
-                #w.events[event_id] = [msg["event_title"], msg["location"], msg["start_time"], msg["end_time"]]
+            if tag == Msg_type.NEW_EVENT:
+                event_id = msg.msg["event_id"]
+                w.events[event_id] = [msg["event_title"], msg.msg["location"], msg["start_time"], msg["end_time"]]
                 print("hello3")
                 
-               # curr_weather = get_current_weather_info(msg["location"].lat,msg["location"].lon, msg["start_time"] )
-                curr_weather = get_current_weather_info(gl_lat, gl_lon)
+                curr_weather = get_current_weather_info(msg.msg["location"].lat, msg.msg["location"].lon, msg.msg["start_time"] )
+                #curr_weather = get_current_weather_info(gl_lat, gl_lon)
                 w_msg = w.generate_weather_msg(0, curr_weather[0], curr_weather[1], curr_weather[2])
                 weather_msg = Message(msg = w_msg, receiver = Dest.SCHEDULER, msg_type=Msg_type.UPDATE_WEATHER, sender = rank )
                 print("hello4")

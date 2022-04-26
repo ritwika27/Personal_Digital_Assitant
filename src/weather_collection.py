@@ -5,7 +5,7 @@ import time
 
 api_key = '46174eb744bf1b113afbf6ddb0108b7d'
 
-def getHourlyForecast(lat, lon):
+def getHourlyForecast(lat, lon, start_time):
     exclude = "current,minutely,daily"
     url = "https://api.openweathermap.org/data/2.5/onecall?lat=%s&lon=%s&exclude=%s&appid=%s&units=imperial" % (lat, lon, exclude, api_key)
     response = rq.get(url)
@@ -30,9 +30,9 @@ def convert_unix_time_to_utc(unix_time):
     return datetime.fromtimestamp(unix_time, datetime.timezone.utc)
 
 #for demo, returns an array with [temp, precip, wind_speed]
-def get_current_weather_info(lat, lon): 
+def get_current_weather_info(lat, lon, start_time): 
     data = getHourlyForecast(lat, lon)
-    #unix_time = convert_utc_to_unix(start_time)
+    unix_time = convert_utc_to_unix(start_time)
     weather = []
     # for forecast in data: 
     #     if forecast["dt"] == int(unix_time): 

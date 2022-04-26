@@ -70,11 +70,13 @@ class Calendar:
                 msg.msg['location'].lat = r['results'][0]['geometry']['location']['lat']
                 msg.msg['location'].lon = r['results'][0]['geometry']['location']['lng']
                 logging.debug(msg.msg)
-
+                print(msg.msg_type)
                 # broadcasting new event
                 # send to weatherman
+                msg.get_msg_type = Msg_type.NEW_EVENT
                 msg.sender = rank
                 msg.receiver = Dest.WEATHERMAN
+                print("hello6")
                 a.send(msg)
 
                 # send to navigator
