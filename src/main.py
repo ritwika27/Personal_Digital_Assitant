@@ -1,4 +1,5 @@
 from mpi4py import MPI
+import logging
 from destination_enum import Dest
 from pdacalendar import Calendar
 from dummy_process import Dummy
@@ -9,13 +10,16 @@ from weatherman import Weatherman
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
-if rank == Dest.WEATHERMAN:
-    # Dummy.run(rank, comm)
-    Weatherman.run(rank, comm)
-elif rank == Dest.SCHEDULER:
+
+logging.basicConfig(filename="logger{}.log".format(rank), level=logging.DEBUG)
+
+
+if rank == Dest.SCHEDULER:
     # c = Calendar()
     Calendar.run(rank, comm)
-
+elif rank == Dest.WEATHERMAN:
+    # Dummy.run(rank, comm)
+    Weatherman.run(rank, comm)
 # elif rank == Dest.WEB:
 #     flaskrun(rank, comm)
 
