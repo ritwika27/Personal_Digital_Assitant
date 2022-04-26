@@ -26,30 +26,25 @@ class Weatherman:
         pass
 
     def run(rank, comm):
-        print("hello")
         w = Weatherman()
         a = Actor(rank, comm)
-        m = Message(msg = w.generate_intialized_msg(2), receiver = Dest.SCHEDULER, msg_type=Msg_type.INITIALIZED, sender = rank)
+        m = Message(msg = w.generate_intialized_msg(2), receiver = Dest.TIMEKEEPER, msg_type=Msg_type.INITIALIZED, sender = rank)
         a.send(m)
         i = 0
-        print("hello2")
         while True:
             msg = a.recv()
-
             tag = msg.get_msg_type()
-            print(tag)
-            print("i am " + str(rank) + " received message " + str(msg.msg) + " from " + str(msg.sender) + " tag: " + str(msg.msg_type))
+            # print(tag)
+            # print("i am " + str(rank) + " received message " + str(msg.msg) + " from " + str(msg.sender) + " tag: " + str(msg.msg_type))
 
             if tag == Msg_type.NEW_EVENT:
                 event_id = msg.msg["event_id"]
-                w.events[event_id] = [msg["event_title"], msg.msg["location"], msg["start_time"], msg["end_time"]]
-                print("hello3")
+                w.events[event_id] = [msg.msg["title"], msg.msg["location"], msg.msg["start_time"], msg.msg["end_time"]]
                 
                 curr_weather = get_current_weather_info(msg.msg["location"].lat, msg.msg["location"].lon, msg.msg["start_time"] )
                 #curr_weather = get_current_weather_info(gl_lat, gl_lon)
                 w_msg = w.generate_weather_msg(0, curr_weather[0], curr_weather[1], curr_weather[2])
-                weather_msg = Message(msg = w_msg, receiver = Dest.SCHEDULER, msg_type=Msg_type.UPDATE_WEATHER, sender = rank )
-                print("hello4")
+                weather_msg = Message(msg = w_msg, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.UPDATE_WEATHER, sender = rank )
                 a.send(weather_msg)
 
                 #TODO: create triggers 

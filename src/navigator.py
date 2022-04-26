@@ -6,9 +6,11 @@ from msg_enum import Msg_type
 from destination_enum import Dest
 import sys
 import time
+import logging
 from datetime import datetime
 from actor import Actor
 from message import Message
+from location import Location
 import requests
 
 api_file = open("APIkey.txt", "r")
@@ -17,7 +19,7 @@ api_file.close()
 
 url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&"
 
-user_location = "paint branch dr"
+user_location = "greenbelt station, maryland"
 
 class Navigator:
     def __init__(self):
@@ -32,7 +34,7 @@ class Navigator:
     def run(rank, comm):
         n = Navigator()
         a = Actor(rank, comm)
-        m = Message(msg = n.generate_intialized_msg(2), receiver = Dest.SCHEDULER, msg_type=Msg_type.INITIALIZED, sender = rank)
+        m = Message(msg = n.generate_intialized_msg(2), receiver = Dest.TIMEKEEPER, msg_type=Msg_type.INITIALIZED, sender = rank)
         a.send(m)
         i = 0
         
@@ -40,23 +42,19 @@ class Navigator:
             msg = a.recv()
 
             tag = msg.get_msg_type()
-            print("i am " + str(rank) + " received message " + msg.msg["msg"] + " from " + str(msg.get_sender()) + " tag: " + str(tag))
-            print(msg.msg)
+            # print("i am " + str(rank) + " received message " + msg.msg["msg"] + " from " + str(msg.get_sender()) + " tag: " + str(tag))
+            # print(msg.msg)
 
-            if tag == Msg_type.REQUEST_ESTIMATE:
-                r = requests.get(url + "origins=" + user_location + "&destinations=" + msg["location"] + "&key=" + api_key)
+            if tag == Msg_type.NEW_EVENT:
+                r = requests.get(url + "origins=" + user_location + "&destinations=" + msg.msg["location"].address + "&key=" + api_key)
                 # print(r.json())
+                logging.debug(r.json())
                 time = r.json()["rows"][0]["elements"][0]["duration"]["text"]
-                event_id = msg["event_id"]
+                event_id = msg.msg["event_id"]
                 n_msg = n.generate_navigator_msg(event_id, time)
-                navigator_msg = Message(msg = n_msg, receiver = Dest.SCHEDULER, msg_type=Msg_type.UPDATE_ESTIMATE, sender = rank )
+                navigator_msg = Message(msg = n_msg, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.UPDATE_ESTIMATE, sender = rank )
                 a.send(navigator_msg)
 
-                sys.stdout.flush()
-                time.sleep(1) 
-
-                # msg.msg["msg"] = "ping"
-                # if i < 2:
-                #     a.send(msg.reply(msg.msg, msg.msg_type))
-                # i = i + 1
-
+            elif tag == Msg_type.REQUEST_ESTIMATE:
+                # TODO 
+                pass

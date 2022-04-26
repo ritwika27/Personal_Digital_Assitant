@@ -23,6 +23,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 
+api_file = open("APIkey.txt", "r")
+api_key = api_file.read()
+api_file.close()
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -50,11 +53,10 @@ class Calendar:
         #         token.write(self.creds.to_json())
 
     def run(rank, comm):
-        print("initializing")
         # c = Calendar()
         a = Actor(rank, comm)
+        a.send(Message(msg=0, sender = rank, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.INITIALIZED))
         while True:
-            print("hi")
             msg = a.recv()
             # print("i am " + str(rank) + " received message " + msg.msg["msg"] + " from " + str(msg.sender) + " tag: " + str(msg.msg_type) + " time: " + str(msg.msg["date"]))
             print("i am " + str(rank) + " received message " + str(msg.msg) + " from " + str(msg.sender) + " tag: " + str(msg.msg_type))
@@ -64,28 +66,23 @@ class Calendar:
             if msg.msg_type == Msg_type.NEW_EVENT:
                 # geo lookup
                 address = msg.msg['location'].address
-                key = 'AIzaSyCp1gIoicaGeLz2JBxkL9Mb-fal9bEVLkI'
-                r = requests.get('https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}'.format(address, key)).json()
+                r = requests.get('https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}'.format(address, api_key)).json()
                 logging.debug(r)
                 msg.msg['location'].lat = r['results'][0]['geometry']['location']['lat']
                 msg.msg['location'].lon = r['results'][0]['geometry']['location']['lng']
                 logging.debug(msg.msg)
-                print(msg.msg_type)
+
+                msg.sender = rank
                 # broadcasting new event
                 # send to weatherman
-                msg.get_msg_type = Msg_type.NEW_EVENT
-                msg.sender = rank
                 msg.receiver = Dest.WEATHERMAN
-                print("hello6")
                 a.send(msg)
 
                 # send to navigator
-                msg.sender = rank
                 msg.receiver = Dest.NAVIGATOR
                 a.send(msg)
 
                 # send to TIMEKEEPER
-                msg.sender = rank
                 msg.receiver = Dest.TIMEKEEPER
                 a.send(msg)
 

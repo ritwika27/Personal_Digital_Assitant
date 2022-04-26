@@ -31,7 +31,7 @@ def convert_unix_time_to_utc(unix_time):
 
 #for demo, returns an array with [temp, precip, wind_speed]
 def get_current_weather_info(lat, lon, start_time): 
-    data = getHourlyForecast(lat, lon)
+    data = getHourlyForecast(lat, lon, start_time)
     unix_time = convert_utc_to_unix(start_time)
     weather = []
     # for forecast in data: 
