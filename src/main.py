@@ -2,6 +2,7 @@ from mpi4py import MPI
 from destination_enum import Dest
 from pdacalendar import Calendar
 from dummy_process import Dummy
+from weatherman import Weatherman
 
 from server import *
 
@@ -12,7 +13,8 @@ if rank == Dest.SCHEDULER:
     # c = Calendar()
     Calendar.run(rank, comm)
 elif rank == Dest.WEATHERMAN:
-    Dummy.run(rank, comm)
+    # Dummy.run(rank, comm)
+    Weatherman.run(rank, comm)
 elif rank == Dest.WEB:
     flaskrun(rank, comm)
 
