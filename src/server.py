@@ -26,14 +26,13 @@ actor = None
 def gen_new_event_msg(address, start_time, end_time, title):
     event_id = int(time.time())
     location = Location(address = address)
-    msg = {'event_id': event_id, 
-            'location': location, 
-            'title': title,
-            'start_time': datetime.strptime(start_time, time_format), 
-            'end_time': datetime.strptime(end_time, time_format)}
+    msg = {'event_id': event_id,
+           'location': location,
+           'title': title,
+           'start_time': datetime.strptime(start_time, time_format),
+           'end_time': datetime.strptime(end_time, time_format)}
     return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
 
-    
 
 @app.route('/')
 def renderPage():
