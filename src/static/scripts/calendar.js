@@ -209,3 +209,8 @@ function openAddEventForm() {
     `;
     popup(shell);
 }
+
+function showNotification(notificationText) {
+    const fill = document.createTextNode(notificationText);
+    popup(fill);
+}

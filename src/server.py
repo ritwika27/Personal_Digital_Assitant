@@ -23,6 +23,9 @@ app = Flask(__name__)
 # mpi
 actor = None
 
+# notifications from backend entities
+pending_notifs = ["testing first notification"]
+
 def gen_new_event_msg(address, start_time, end_time, title):
     event_id = int(time.time())
     location = Location(address = address)
@@ -46,6 +49,16 @@ def addEvent():
 
   # TODO send message to calendar
   return redirect(url_for('renderPage'))
+
+from threading import Timer
+@app.route('/checkNotifs')
+def checkNotifs():
+  if len(pending_notifs) > 0:
+    return {
+        "notif": pending_notifs.pop(),
+        "more": len(pending_notifs) > 0
+    }
+  else: return { "notif": "", "more": False }
 
 @app.route('/preferences')
 def preferences():

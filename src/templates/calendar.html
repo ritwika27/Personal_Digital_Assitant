@@ -9,6 +9,24 @@
 
     <script src="static/scripts/events.js"></script>
     <script src="static/scripts/calendar.js"></script>
+    <script>
+        interval = 60;
+        (async function() {
+            console.log("start");
+            pending = false;
+            do {
+                await fetch("{{ url_for("checkNotifs") }}")
+                    .then(resp => resp.json())
+                    .then(d => {console.log(d); return d;})
+                    .then(data => {
+                        pending = data.more;
+                        if (data.notif !== "") showNotification(data.notif);
+                    })
+                console.log(pending);
+            } while (pending);
+            setTimeout(arguments.callee, interval * 1000);
+        })();
+    </script>
 </head>
 <body>
 <div id="viewport">
