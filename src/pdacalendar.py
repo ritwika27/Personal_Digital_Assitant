@@ -9,6 +9,8 @@ import requests
 import logging
 import json
 
+import psycopg2
+
 # self defined modules
 from destination_enum import Dest
 from msg_enum import Msg_type
@@ -86,8 +88,55 @@ class Calendar:
                 msg.receiver = Dest.TIMEKEEPER
                 a.send(msg)
 
-    def add_event(self, start_time, end_time):
-        pass
+    def add_event(user_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
+                                            event_start_time, event_end_time, event_date, event_description):
+        try:
+            con = psycopg2.connect(
+                        database = "postgres",
+                        user = "farnazzamiri",
+                        password = "pgadmin")
+            print(con)
+            cur = con.cursor()
+
+            cur.execute(f"""
+                    INSERT INTO public."userData"(user_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
+                                                event_start_time, event_end_time, event_date, event_description)
+                    VALUES ({user_id}, '{preferences}', '{user_location}', {user_lat}, {user_long}, '{event_location}', {event_lat}, {event_long}, 
+                                        '{event_start_time}', '{event_end_time}', '{event_date}', '{event_description}');
+                    """)
+            #   pref = cur.fetchall()
+            con.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if con is not None:
+                con.close()
+# add_event(3, 'bus', 'Tuckerman Ln', 39.0368225, -77.1363598, 'College park', 38.9902899, -76.9356509, '9:30:00', '10:30:00', '05-22-2022', 'work meeting')
+        
+    def update_event(column_name, column_value, user_id):
+        try:
+            con = psycopg2.connect(
+                        database = "postgres",
+                        user = "farnazzamiri",
+                        password = "pgadmin")
+            print(con)
+            cur = con.cursor()
+
+            cur.execute(f"""
+                    UPDATE public."userData"
+                    SET {column_name} = '{column_value}'
+                    WHERE user_id = {user_id}
+                    """)
+            #   pref = cur.fetchall()
+            con.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if con is not None:
+                con.close()
+# update_event('user_location', 'Old georgetown Rd', 3)
 
     def sync(self):
         try:
