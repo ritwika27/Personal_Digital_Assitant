@@ -50,7 +50,6 @@ def addEvent():
   # TODO send message to calendar
   return redirect(url_for('renderPage'))
 
-from threading import Timer
 @app.route('/checkNotifs')
 def checkNotifs():
   if len(pending_notifs) > 0:
