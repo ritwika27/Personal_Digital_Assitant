@@ -59,6 +59,13 @@ def checkNotifs():
     }
   else: return { "notif": "", "more": False }
 
+@app.route('/relayPosition', methods=['POST'])
+def relayPosition():
+  print("lat:", request.json['lat'],
+        "\nlon:", request.json['lon'])
+  # TODO: Maybe save these? Or call some function for them?
+  return Response(status=204)
+
 @app.route('/preferences')
 def preferences():
   sys.stdout.flush()
