@@ -55,7 +55,7 @@ class Calendar:
         #         token.write(self.creds.to_json())
 
     def run(rank, comm):
-        # c = Calendar()
+        c = Calendar()
         a = Actor(rank, comm)
         a.send(Message(msg=0, sender = rank, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.INITIALIZED))
         while True:
@@ -74,6 +74,9 @@ class Calendar:
                 msg.msg['location'].lon = r['results'][0]['geometry']['location']['lng']
                 logging.debug(msg.msg)
 
+                # add event into database
+                c.add_event(msg.msg['event_id'])
+
                 msg.sender = rank
                 # broadcasting new event
                 # send to weatherman
@@ -88,20 +91,24 @@ class Calendar:
                 msg.receiver = Dest.TIMEKEEPER
                 a.send(msg)
 
-    def add_event(user_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
+    def add_event(self, event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
                                             event_start_time, event_end_time, event_date, event_description):
         try:
             con = psycopg2.connect(
-                        database = "postgres",
-                        user = "farnazzamiri",
-                        password = "pgadmin")
+                        database = "pda",
+                        user = "postgres",
+                        password = "pdapassword"
+                        # database = "postgres",
+                        # user = "farnazzamiri",
+                        # password = "pgadmin"
+                        )
             print(con)
             cur = con.cursor()
 
             cur.execute(f"""
                     INSERT INTO public."userData"(user_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
                                                 event_start_time, event_end_time, event_date, event_description)
-                    VALUES ({user_id}, '{preferences}', '{user_location}', {user_lat}, {user_long}, '{event_location}', {event_lat}, {event_long}, 
+                    VALUES ({event_id}, '{preferences}', '{user_location}', {user_lat}, {user_long}, '{event_location}', {event_lat}, {event_long}, 
                                         '{event_start_time}', '{event_end_time}', '{event_date}', '{event_description}');
                     """)
             #   pref = cur.fetchall()
@@ -114,19 +121,23 @@ class Calendar:
                 con.close()
 # add_event(3, 'bus', 'Tuckerman Ln', 39.0368225, -77.1363598, 'College park', 38.9902899, -76.9356509, '9:30:00', '10:30:00', '05-22-2022', 'work meeting')
         
-    def update_event(column_name, column_value, user_id):
+    def update_event(column_name, column_value, event_id):
         try:
             con = psycopg2.connect(
-                        database = "postgres",
-                        user = "farnazzamiri",
-                        password = "pgadmin")
+                        database = "pda",
+                        user = "postgres",
+                        password = "pdapassword"
+                        # database = "postgres",
+                        # user = "farnazzamiri",
+                        # password = "pgadmin"
+                        )
             print(con)
             cur = con.cursor()
 
             cur.execute(f"""
                     UPDATE public."userData"
                     SET {column_name} = '{column_value}'
-                    WHERE user_id = {user_id}
+                    WHERE user_id = {event_id}
                     """)
             #   pref = cur.fetchall()
             con.commit()
