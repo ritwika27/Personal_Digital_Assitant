@@ -26,6 +26,26 @@
             } while (pending);
             setTimeout(arguments.callee, interval * 1000);
         })();
+
+        window.addEventListener('load', relayLocation);
+        function relayLocation() {
+            if (!navigator.geolocation) {
+                console.log("No navigator");
+            }
+            navigator.geolocation.getCurrentPosition(pos => {
+                fetch("{{ url_for("relayPosition") }}", {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        'lat': pos.coords.latitude,
+                        'lon': pos.coords.longitude,
+                    }),
+                });
+            }, () => console.log());
+        }
     </script>
 </head>
 <body>

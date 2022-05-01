@@ -50,7 +50,6 @@ def addEvent():
   # TODO send message to calendar
   return redirect(url_for('renderPage'))
 
-from threading import Timer
 @app.route('/checkNotifs')
 def checkNotifs():
   if len(pending_notifs) > 0:
@@ -59,6 +58,13 @@ def checkNotifs():
         "more": len(pending_notifs) > 0
     }
   else: return { "notif": "", "more": False }
+
+@app.route('/relayPosition', methods=['POST'])
+def relayPosition():
+  print("lat:", request.json['lat'],
+        "\nlon:", request.json['lon'])
+  # TODO: Maybe save these? Or call some function for them?
+  return Response(status=204)
 
 @app.route('/preferences')
 def preferences():
