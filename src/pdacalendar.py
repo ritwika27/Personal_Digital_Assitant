@@ -78,8 +78,8 @@ class Calendar:
                 # assuming those should not be None
                 # TODO fix it
                 c.add_event(msg.msg['event_id'], 
-                        None, #preferences
-                        None, #user_location
+                        "placeholder", #preferences
+                        "placeholder", #user_location
                         msg.msg['user_location'].lat, 
                         msg.msg('user_location'].lon,
                         msg.msg['location'].address,
