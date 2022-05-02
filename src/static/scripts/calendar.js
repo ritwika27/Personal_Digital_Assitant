@@ -204,6 +204,11 @@ function openAddEventForm() {
                 <label for="location">Location</label>
                 <input id="location" name="address" required></input>
             </span>
+            <span>
+                <label for="description">Description</label>
+                <br />
+                <textarea id="description" name="description" rows="5"></textarea>
+            </span>
             <input type="submit" value="Add Event"></input>
         </form>
     `;
