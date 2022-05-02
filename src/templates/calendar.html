@@ -10,9 +10,8 @@
     <script src="static/scripts/events.js"></script>
     <script src="static/scripts/calendar.js"></script>
     <script>
-        interval = 60;
+        notif_interval = 60;
         (async function() {
-            console.log("start");
             pending = false;
             do {
                 await fetch("{{ url_for("checkNotifs") }}")
@@ -24,28 +23,31 @@
                     })
                 console.log(pending);
             } while (pending);
-            setTimeout(arguments.callee, interval * 1000);
+            setTimeout(arguments.callee, notif_interval * 1000);
         })();
 
-        window.addEventListener('load', relayLocation);
-        function relayLocation() {
-            if (!navigator.geolocation) {
-                console.log("No navigator");
-            }
-            navigator.geolocation.getCurrentPosition(pos => {
-                fetch("{{ url_for("relayPosition") }}", {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        'lat': pos.coords.latitude,
-                        'lon': pos.coords.longitude,
-                    }),
-                });
-            }, () => console.log());
-        }
+        let lastCoords = {
+            'lat': null,
+            'lon': null,
+        };
+        navigator.geolocation.watchPosition(async pos => {
+            const coords = {
+                'lat': pos.coords.latitude,
+                'lon': pos.coords.longitude,
+            };
+            if (coords['lat'] == lastCoords['lat'] &&
+                coords['lon'] == lastCoords['lon']) return;
+            lastCoords = coords;
+            await fetch("{{ url_for("relayPosition") }}", {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(coords),
+            });
+        });
+
     </script>
 </head>
 <body>
