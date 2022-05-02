@@ -202,6 +202,10 @@
     width: 120px;
 }
 
+#addEventForm textarea {
+    width: 100%;
+}
+
 #popoutExit {
     width: 20px;
     height: 20px;
