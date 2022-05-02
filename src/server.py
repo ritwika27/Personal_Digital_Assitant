@@ -26,14 +26,17 @@ actor = None
 # notifications from backend entities
 pending_notifs = ["testing first notification"]
 
-def gen_new_event_msg(address, start_time, end_time, title):
+def gen_new_event_msg(address, start_time, end_time, title, user_lat, user_lon):
     event_id = int(time.time())
     location = Location(address = address)
+    user_location = Location(lat = user_lat, lon=user_lon)
     msg = {'event_id': event_id,
            'location': location,
            'title': title,
            'start_time': datetime.strptime(start_time, time_format),
-           'end_time': datetime.strptime(end_time, time_format)}
+           'end_time': datetime.strptime(end_time, time_format),
+           'user_location': user_location
+           }
     return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
 
 
@@ -45,9 +48,9 @@ def renderPage():
 def addEvent():
   print(request)
   # print(datetime.strptime(request.values['start'], time_format))
-  actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title']))
+  # TODO: change last None to actual location
+  actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title'], None, None))
 
-  # TODO send message to calendar
   return redirect(url_for('renderPage'))
 
 @app.route('/checkNotifs')
