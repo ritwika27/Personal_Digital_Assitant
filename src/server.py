@@ -8,6 +8,7 @@ import psycopg2
 import sys
 import time
 from datetime import datetime
+import signal
 
 # self defined modules
 from actor import Actor
@@ -26,15 +27,25 @@ actor = None
 # notifications from backend entities
 pending_notifs = ["testing first notification"]
 
+# Open up DB connection
+con = psycopg2.connect(
+    #database = "postgres",
+    #user = "farnazzamiri",
+    #password = "pgadmin"
+    database = "pda",
+    user = "postgres",
+    password = "pdapassword"
+)
+
 def gen_new_event_msg(address, start_time, end_time, title):
-    event_id = int(time.time())
-    location = Location(address = address)
-    msg = {'event_id': event_id,
-           'location': location,
-           'title': title,
-           'start_time': datetime.strptime(start_time, time_format),
-           'end_time': datetime.strptime(end_time, time_format)}
-    return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
+  event_id = int(time.time())
+  location = Location(address = address)
+  msg = {'event_id': event_id,
+         'location': location,
+         'title': title,
+         'start_time': datetime.strptime(start_time, time_format),
+         'end_time': datetime.strptime(end_time, time_format)}
+  return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
 
 
 @app.route('/')
@@ -54,8 +65,8 @@ def addEvent():
 def checkNotifs():
   if len(pending_notifs) > 0:
     return {
-        "notif": pending_notifs.pop(),
-        "more": len(pending_notifs) > 0
+      "notif": pending_notifs.pop(),
+      "more": len(pending_notifs) > 0
     }
   else: return { "notif": "", "more": False }
 
@@ -68,26 +79,14 @@ def relayPosition():
 
 @app.route('/preferences')
 def preferences():
-  sys.stdout.flush()
-  con = psycopg2.connect(
-            #database = "postgres",
-            #user = "farnazzamiri",
-            #password = "pgadmin"
-            database = "pda",
-            user = "postgres",
-            password = "pdapassword"
-            )
   cur = con.cursor()
-
   cur.execute(f"""
         SELECT *
         FROM
             public."userData";
         """)
   pref = cur.fetchall()
-
   cur.close()
-  con.close()
 
   print(pref)
   sys.stdout.flush()
@@ -100,8 +99,9 @@ def preferences():
 
 if __name__ == "__main__":
   app.run(debug=True,port=8000)
+  signal.signal(singal.SIGINT, lambda s, f: con.close())
 
 def flaskrun(rank, comm):
-    global actor
-    actor = Actor(rank, comm)
-    app.run(debug=False, port=8000)
+  global actor
+  actor = Actor(rank, comm)
+  app.run(debug=False, port=8000)
