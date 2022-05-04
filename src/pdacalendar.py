@@ -93,17 +93,7 @@ class Calendar:
 
                 msg.sender = rank
                 # broadcasting new event
-                # send to weatherman
-                msg.receiver = Dest.WEATHERMAN
-                a.send(msg)
-
-                # send to navigator
-                msg.receiver = Dest.NAVIGATOR
-                a.send(msg)
-
-                # send to TIMEKEEPER
-                msg.receiver = Dest.TIMEKEEPER
-                a.send(msg)
+                a.broadcast(m, exclude=[Dest.WEB])
 
     def add_event(self, 
             event_id, 

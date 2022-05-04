@@ -85,7 +85,8 @@ def relayPosition():
     print("lat:", user_lat, 
             "\nlon:", user_lon)
     l = Location(lat = user_lat, lon = user_lon)
-    actor.isend(Message(msg = l, msg_type=Msg_type.UPDATE_USER_LOCATION, sender=actor.rank, receiver=Dest.SCHEDULER))
+    m = Message(msg = l, msg_type=Msg_type.UPDATE_USER_LOCATION, sender=actor.rank, receiver=Dest.SCHEDULER)
+    actor.broadcast(m)
     return Response(status=204)
 
 @app.route('/preferences')
