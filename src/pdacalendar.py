@@ -74,8 +74,22 @@ class Calendar:
                 msg.msg['location'].lon = r['results'][0]['geometry']['location']['lng']
                 logging.debug(msg.msg)
 
-                # add event into database
-                c.add_event(msg.msg['event_id'])
+                # add event into database before forwarding message to other modules
+                # assuming those should not be None
+                # TODO fix it
+                c.add_event(msg.msg['event_id'], 
+                        "placeholder", #preferences
+                        "placeholder", #user_location
+                        msg.msg['user_location'].lat, 
+                        msg.msg['user_location'].lon,
+                        msg.msg['location'].address,
+                        msg.msg['location'].lat,
+                        msg.msg['location'].lon,
+                        msg.msg['start_time'],
+                        msg.msg['end_time'],
+                        "01/01/2000", #fake date TODO: remove it
+                        msg.msg['event_description']
+                        )
 
                 msg.sender = rank
                 # broadcasting new event
@@ -91,8 +105,19 @@ class Calendar:
                 msg.receiver = Dest.TIMEKEEPER
                 a.send(msg)
 
-    def add_event(self, event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
-                                            event_start_time, event_end_time, event_date, event_description):
+    def add_event(self, 
+            event_id, 
+            preferences, 
+            user_location, 
+            user_lat, 
+            user_long, 
+            event_location, 
+            event_lat, 
+            event_long, 
+            event_start_time, 
+            event_end_time, 
+            event_date, 
+            event_description):
         try:
             con = psycopg2.connect(
                         database = "pda",
@@ -106,7 +131,7 @@ class Calendar:
             cur = con.cursor()
 
             cur.execute(f"""
-                    INSERT INTO public."userData"(user_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
+                    INSERT INTO public."userData"(event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
                                                 event_start_time, event_end_time, event_date, event_description)
                     VALUES ({event_id}, '{preferences}', '{user_location}', {user_lat}, {user_long}, '{event_location}', {event_lat}, {event_long}, 
                                         '{event_start_time}', '{event_end_time}', '{event_date}', '{event_description}');

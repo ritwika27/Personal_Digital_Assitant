@@ -7,6 +7,7 @@ from flask import Flask,request,Response,render_template, redirect, url_for
 import psycopg2
 import sys
 import time
+import logging
 from datetime import datetime
 import signal
 
@@ -37,15 +38,23 @@ con = psycopg2.connect(
     password = "pdapassword"
 )
 
-def gen_new_event_msg(address, start_time, end_time, title):
-  event_id = int(time.time())
-  location = Location(address = address)
-  msg = {'event_id': event_id,
-         'location': location,
-         'title': title,
-         'start_time': datetime.strptime(start_time, time_format),
-         'end_time': datetime.strptime(end_time, time_format)}
-  return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
+# user location info
+user_lat = None
+user_lon = None
+
+def gen_new_event_msg(address, start_time, end_time, title, user_lat, user_lon, event_description):
+    event_id = int(time.time())
+    location = Location(address = address)
+    user_location = Location(lat = user_lat, lon=user_lon)
+    msg = {'event_id': event_id,
+           'location': location,
+           'title': title,
+           'start_time': datetime.strptime(start_time, time_format),
+           'end_time': datetime.strptime(end_time, time_format),
+           'user_location': user_location,
+           'event_description': event_description
+           }
+    return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
 
 
 @app.route('/')
@@ -56,9 +65,16 @@ def renderPage():
 def addEvent():
   print(request)
   # print(datetime.strptime(request.values['start'], time_format))
-  actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title']))
+  # TODO: change last None to actual location
+  if actor == None:
+      print("running webserver independently, ignoring sending message")
+      return redirect(url_for('renderPage'))
 
-  # TODO send message to calendar
+  print("lat:", user_lat,
+        "\nlon:", user_lon)
+
+  actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title'], user_lat, user_lon, request.values['description']))
+
   return redirect(url_for('renderPage'))
 
 @app.route('/checkNotifs')
@@ -72,10 +88,16 @@ def checkNotifs():
 
 @app.route('/relayPosition', methods=['POST'])
 def relayPosition():
-  print("lat:", request.json['lat'],
-        "\nlon:", request.json['lon'])
-  # TODO: Maybe save these? Or call some function for them?
-  return Response(status=204)
+    logging.debug("From user: lat: {}\tlon: {}".format(request.json['lat'], request.json['lon']))
+    global user_lat
+    global user_lon
+    user_lat = request.json['lat']
+    user_lon = request.json['lon']
+    print("lat:", user_lat,
+          "\nlon:", user_lon)
+    l = Location(lat = user_lat, lon = user_lon)
+    actor.isend(Message(msg = l, msg_type=Msg_type.UPDATE_USER_LOCATION, sender=actor.rank, receiver=Dest.SCHEDULER))
+    return Response(status=204)
 
 @app.route('/preferences')
 def preferences():
