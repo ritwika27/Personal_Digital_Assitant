@@ -9,6 +9,7 @@ import sys
 import time
 import logging
 from datetime import datetime
+import signal
 
 # self defined modules
 from actor import Actor
@@ -26,6 +27,16 @@ actor = None
 
 # notifications from backend entities
 pending_notifs = ["testing first notification"]
+
+# Open up DB connection
+con = psycopg2.connect(
+    #database = "postgres",
+    #user = "farnazzamiri",
+    #password = "pgadmin"
+    database = "pda",
+    user = "postgres",
+    password = "pdapassword"
+)
 
 # user location info
 user_lat = None
@@ -59,8 +70,8 @@ def addEvent():
       print("running webserver independently, ignoring sending message")
       return redirect(url_for('renderPage'))
 
-  print("lat:", user_lat, 
-          "\nlon:", user_lon)
+  print("lat:", user_lat,
+        "\nlon:", user_lon)
 
   actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title'], user_lat, user_lon, request.values['description']))
 
@@ -68,12 +79,12 @@ def addEvent():
 
 @app.route('/checkNotifs')
 def checkNotifs():
-    if len(pending_notifs) > 0:
-        return {
-                "notif": pending_notifs.pop(),
-                "more": len(pending_notifs) > 0
-                }
-    else: return { "notif": "", "more": False }
+  if len(pending_notifs) > 0:
+    return {
+      "notif": pending_notifs.pop(),
+      "more": len(pending_notifs) > 0
+    }
+  else: return { "notif": "", "more": False }
 
 @app.route('/relayPosition', methods=['POST'])
 def relayPosition():
@@ -82,8 +93,8 @@ def relayPosition():
     global user_lon
     user_lat = request.json['lat']
     user_lon = request.json['lon']
-    print("lat:", user_lat, 
-            "\nlon:", user_lon)
+    print("lat:", user_lat,
+          "\nlon:", user_lon)
     l = Location(lat = user_lat, lon = user_lon)
     m = Message(msg = l, msg_type=Msg_type.UPDATE_USER_LOCATION, sender=actor.rank, receiver=Dest.SCHEDULER)
     actor.broadcast(m)
@@ -91,26 +102,14 @@ def relayPosition():
 
 @app.route('/preferences')
 def preferences():
-  sys.stdout.flush()
-  con = psycopg2.connect(
-            #database = "postgres",
-            #user = "farnazzamiri",
-            #password = "pgadmin"
-            database = "pda",
-            user = "postgres",
-            password = "pdapassword"
-            )
   cur = con.cursor()
-
   cur.execute(f"""
         SELECT *
         FROM
             public."userData";
         """)
   pref = cur.fetchall()
-
   cur.close()
-  con.close()
 
   print(pref)
   sys.stdout.flush()
@@ -123,8 +122,9 @@ def preferences():
 
 if __name__ == "__main__":
   app.run(debug=True,port=8000)
+  signal.signal(singal.SIGINT, lambda s, f: con.close())
 
 def flaskrun(rank, comm):
-    global actor
-    actor = Actor(rank, comm)
-    app.run(debug=False, port=8000)
+  global actor
+  actor = Actor(rank, comm)
+  app.run(debug=False, port=8000)
