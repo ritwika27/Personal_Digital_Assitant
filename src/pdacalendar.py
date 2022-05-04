@@ -106,8 +106,9 @@ class Calendar:
             event_long, 
             event_start_time, 
             event_end_time, 
-            event_date, 
-            event_description):
+            event_title, 
+            event_description,
+            event_passed):
         try:
             con = psycopg2.connect(
                         database = "pda",
@@ -121,10 +122,10 @@ class Calendar:
             cur = con.cursor()
 
             cur.execute(f"""
-                    INSERT INTO public."userData"(event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
-                                                event_start_time, event_end_time, event_date, event_description)
+                    INSERT INTO public."userData"(event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, event_start_time,
+                                                    event_end_time, event_title, event_description, event_passed)
                     VALUES ({event_id}, '{preferences}', '{user_location}', {user_lat}, {user_long}, '{event_location}', {event_lat}, {event_long}, 
-                                        '{event_start_time}', '{event_end_time}', '{event_date}', '{event_description}');
+                                        '{event_start_time}', '{event_end_time}', '{event_title}', '{event_description}', '{event_passed}');
                     """)
             #   pref = cur.fetchall()
             con.commit()
@@ -134,7 +135,7 @@ class Calendar:
         finally:
             if con is not None:
                 con.close()
-# add_event(3, 'bus', 'Tuckerman Ln', 39.0368225, -77.1363598, 'College park', 38.9902899, -76.9356509, '9:30:00', '10:30:00', '05-22-2022', 'work meeting')
+# add_event(1, 'bus', 'democracy blvd', 39.022797, -77.151316, 'college park', 38.991385, -76.937700, '2022-06-11 11:00:00', '2022-06-11 12:00:00', 'work', 'asadasdasd', 0)
         
     def update_event(column_name, column_value, event_id):
         try:
@@ -152,7 +153,7 @@ class Calendar:
             cur.execute(f"""
                     UPDATE public."userData"
                     SET {column_name} = '{column_value}'
-                    WHERE user_id = {event_id}
+                    WHERE event_id = {event_id}
                     """)
             #   pref = cur.fetchall()
             con.commit()
