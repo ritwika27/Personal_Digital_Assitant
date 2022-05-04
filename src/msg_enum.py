@@ -7,6 +7,6 @@ class Msg_type(IntEnum):
     UPDATE_ESTIMATE=2
     STATUS=3
     UPDATE_WEATHER=4
-
     CURR_WEATHER=5 # for demo
+    UPDATE_USER_LOCATION=6
 

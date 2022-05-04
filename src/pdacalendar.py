@@ -81,15 +81,15 @@ class Calendar:
                         "placeholder", #preferences
                         "placeholder", #user_location
                         msg.msg['user_location'].lat, 
-                        msg.msg('user_location'].lon,
+                        msg.msg['user_location'].lon,
                         msg.msg['location'].address,
                         msg.msg['location'].lat,
                         msg.msg['location'].lon,
                         msg.msg['start_time'],
                         msg.msg['end_time'],
-                        "01/01/2000", #fake date
-                        "placeholder" #TODO: add event description
-                        ))
+                        "01/01/2000", #fake date TODO: remove it
+                        msg.msg['event_description']
+                        )
 
                 msg.sender = rank
                 # broadcasting new event
@@ -131,7 +131,7 @@ class Calendar:
             cur = con.cursor()
 
             cur.execute(f"""
-                    INSERT INTO public."userData"(user_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
+                    INSERT INTO public."userData"(event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
                                                 event_start_time, event_end_time, event_date, event_description)
                     VALUES ({event_id}, '{preferences}', '{user_location}', {user_lat}, {user_long}, '{event_location}', {event_lat}, {event_long}, 
                                         '{event_start_time}', '{event_end_time}', '{event_date}', '{event_description}');
