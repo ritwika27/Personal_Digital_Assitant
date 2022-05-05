@@ -220,7 +220,37 @@ class Calendar:
         finally:
             if con is not None:
                 con.close()
-    
+
+    def search_by_start_time_range(self, rangeStart, rangeEnd):
+        try:
+            con = psycopg2.connect(
+                        database = "pda",
+                        user = "postgres",
+                        password = "pdapassword"
+                        # database = "postgres",
+                        # user = "farnazzamiri",
+                        # password = "pgadmin"
+                        )
+            print(con)
+            cur = con.cursor()
+
+            cur.execute(f"""
+                        SELECT * 
+                        FROM public."userData" 
+                        WHERE event_start_time 
+                        BETWEEN '{rangeStart}' AND '{rangeEnd}';
+                        """)
+            ev = cur.fetchall()
+            con.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if con is not None:
+                con.close()
+                data = json.dumps(ev, default=str)
+                print(data)
+# search_by_start_time_range('2022-06-11 11:00:00', '2022-06-11 12:00:00')
 
     def sync(self):
         try:
