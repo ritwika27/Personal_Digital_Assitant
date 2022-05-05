@@ -59,7 +59,36 @@ def gen_new_event_msg(address, start_time, end_time, title, user_lat, user_lon, 
 
 @app.route('/')
 def renderPage():
-  return render_template("calendar.html")
+  cur = con.cursor()
+  cur.execute(f"""
+        SELECT event_title, event_start_time, event_end_time, event_description, event_location
+        FROM public."userData";
+  """)
+  events = cur.fetchall()
+  cur.close()
+
+  def mapData(event):
+    return {
+      "name": event[0],
+      "time": event[1].strftime("%d %b %Y %X"),
+      "duration": (event[2] - event[1]).total_seconds() / 60,
+      "desc": event[3]
+    }
+
+  eventData = list(map(mapData, events))
+  """events = [
+    {
+        "name": "Potato PI",
+        "time": "23 Apr 2022 16:00:00",
+        "duration": "150",
+        "roomNum": "2116",
+        "desc": "Come learn how to power your Raspberry PI Server with nothing but a potato!",
+        "registerLink": "https://youtu.be/dQw4w9WgXcQ",
+        "registerText": "Sign up here",
+        "detailsLink": "https://youtu.be/ub82Xb1C8os"
+    }
+  ];"""
+  return render_template("calendar.html", eventData=json.dumps(eventData))
 
 @app.route('/addEvent', methods=['GET', 'POST'])
 def addEvent():
