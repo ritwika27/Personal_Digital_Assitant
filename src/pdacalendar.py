@@ -73,7 +73,7 @@ class Calendar:
 				msg.sender = rank
 				# broadcasting new event
 				a.broadcast(m, exclude=[Dest.WEB])
-		elif msg.msg_type == Msg_type.UPDATE_USER_LOCATION:
+			elif msg.msg_type == Msg_type.UPDATE_USER_LOCATION:
 				c.user_location = msg.msg
 
 	def add_event(self, 
@@ -146,37 +146,37 @@ class Calendar:
 				con.close()
 		# update_event('user_location', 'Old georgetown Rd', 3)
 
-    def get_closest_event():
-			try:
-				con = psycopg2.connect(
-						database = "pda",
-						user = "postgres",
-						password = "pdapassword"
-						# database = "postgres",
-						# user = "farnazzamiri",
-						# password = "pgadmin"
-						)
-				print(con)
-				cur = con.cursor()
+	def get_closest_event():
+		try:
+			con = psycopg2.connect(
+					database = "pda",
+					user = "postgres",
+					password = "pdapassword"
+					# database = "postgres",
+					# user = "farnazzamiri",
+					# password = "pgadmin"
+					)
+			print(con)
+			cur = con.cursor()
 
-				cur.execute(f"""
-					SELECT *
-					FROM public."userData"
-					ORDER BY event_passed DESC, event_start_time
-					FETCH FIRST ROW ONLY;
-				""")
-				ev = cur.fetchall()
-				con.commit()
-				cur.close()
-			except (Exception, psycopg2.DatabaseError) as error:
-				print(error)
-			finally:
-				if con is not None:
-					con.close()
-					data = json.dumps(ev, default=str)
-					print(data)
+			cur.execute(f"""
+				SELECT *
+				FROM public."userData"
+				ORDER BY event_passed DESC, event_start_time
+				FETCH FIRST ROW ONLY;
+			""")
+			ev = cur.fetchall()
+			con.commit()
+			cur.close()
+		except (Exception, psycopg2.DatabaseError) as error:
+			print(error)
+		finally:
+			if con is not None:
+				con.close()
+				data = json.dumps(ev, default=str)
+				print(data)
 
-		# ev and data return the closest event
+	# ev and data return the closest event
 
 		def delete_event(self, event_id):
 			try:
