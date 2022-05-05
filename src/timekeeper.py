@@ -1,5 +1,7 @@
 import logging
 import sys
+from apscheduler.schedulers.background import BackgroundScheduler
+
 
 
 # self defined modules
@@ -14,6 +16,7 @@ class Timekeeper:
 
     def run(rank, comm):
         a = Actor(rank, comm)
+        t = Timekeeper()
 
         while True:
             msg = a.recv()
@@ -28,3 +31,6 @@ class Timekeeper:
                 print(msg.msg)
 
             sys.stdout.flush()
+
+    def set_up_job(self):
+
