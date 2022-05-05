@@ -25,14 +25,20 @@ transport_mode = "driving"
 
 class Navigator:
     def __init__(self):
-      self.locations = {}
+        self.locations = {}
+        self.curr_location = Location()
+        self.earliest_event_id = 0
         
     def generate_intialized_msg(self, rank):
         return {"rank": rank, "msg": "navigator_intialized", "date": datetime.now()}
     def generate_navigator_msg(self, event_id, travel_time):
         return {"event_id": event_id, "travel_time": travel_time,  "msg": "navigator_info", "date": datetime.now()}
 
-    #def get_travel_time_estimate()
+    def get_travel_time_estimate(user_location, address, transport_mode):
+        r = requests.get(url + "origins=" + user_location + "&destinations=" + address + "&mode=" + transport_mode + "&departure_time=now" + "&key=" + api_key)
+        logging.debug(r.json()) 
+        time = r.json()["rows"][0]["elements"][0]["duration"]["text"]
+        return time
 
     def run(rank, comm):
         n = Navigator()
@@ -49,17 +55,26 @@ class Navigator:
             # print(msg.msg)
 
             if tag == Msg_type.NEW_EVENT:
-                r = requests.get(url + "origins=" + user_location + "&destinations=" + msg.msg["location"].address + "&mode=" + transport_mode + "&departure_time=now" + "&key=" + api_key)
-                # print(r.json())
-                logging.debug(r.json()) 
-                time = r.json()["rows"][0]["elements"][0]["duration"]["text"]
                 event_id = msg.msg["event_id"]
+                if n.earliest_event_id > event_id: n.earliest_event_id = event_id
+                n.locations[event_id] = msg.msg["location"]
+                time = n.get_travel_time_estimate(n.curr_location, msg.msg["location"].address, msg.msg["transport_mode"])
                 n_msg = n.generate_navigator_msg(event_id, time)
                 navigator_msg = Message(msg = n_msg, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.RESPONSE_ESTIMATE, sender = rank )
                 a.send(navigator_msg)
 
             elif tag == Msg_type.REQUEST_ESTIMATE:
-                # TODO 
+                event_id = msg.msg["event_id"]
+                time = n.get_travel_time_estimate(n.curr_location, msg.msg["location"].address, msg.msg["transport_mode"])
+                n_msg = n.generate_navigator_msg(event_id, time)
+                navigator_msg = Message(msg = n_msg, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.RESPONSE_ESTIMATE, sender = rank )
+                a.send(navigator_msg) 
                 pass
             elif tag == Msg_type.UPDATE_USER_LOCATION:
-                pass
+                n.curr_location = msg.msg["location"].address
+                event_id = msg.msg["event_id"]
+                address = n.locations[n.earliest_event_id].address
+                time = n.get_travel_time_estimate(n.curr_location, address, msg.msg["transport_mode"])
+                n_msg = n.generate_navigator_msg(event_id, time)
+                navigator_msg = Message(msg = n_msg, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.RESPONSE_ESTIMATE, sender = rank )
+                a.send(navigator_msg)               
