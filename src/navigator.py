@@ -20,6 +20,8 @@ api_file.close()
 url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&"
 
 user_location = "greenbelt station, maryland"
+transport_mode = "driving"
+# driving/ walking/ bicycling/ transit
 
 class Navigator:
     def __init__(self):
@@ -46,7 +48,7 @@ class Navigator:
             # print(msg.msg)
 
             if tag == Msg_type.NEW_EVENT:
-                r = requests.get(url + "origins=" + user_location + "&destinations=" + msg.msg["location"].address + "&key=" + api_key)
+                r = requests.get(url + "origins=" + user_location + "&destinations=" + msg.msg["location"].address + "&mode=" + transport_mode + "&departure_time=now" + "&key=" + api_key)
                 # print(r.json())
                 logging.debug(r.json())
                 time = r.json()["rows"][0]["elements"][0]["duration"]["text"]
