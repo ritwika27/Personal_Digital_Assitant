@@ -106,8 +106,9 @@ class Calendar:
             event_long, 
             event_start_time, 
             event_end_time, 
-            event_date, 
-            event_description):
+            event_title, 
+            event_description,
+            event_passed):
         try:
             con = psycopg2.connect(
                         database = "pda",
@@ -121,10 +122,10 @@ class Calendar:
             cur = con.cursor()
 
             cur.execute(f"""
-                    INSERT INTO public."userData"(event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, 
-                                                event_start_time, event_end_time, event_date, event_description)
+                    INSERT INTO public."userData"(event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, event_start_time,
+                                                    event_end_time, event_title, event_description, event_passed)
                     VALUES ({event_id}, '{preferences}', '{user_location}', {user_lat}, {user_long}, '{event_location}', {event_lat}, {event_long}, 
-                                        '{event_start_time}', '{event_end_time}', '{event_date}', '{event_description}');
+                                        '{event_start_time}', '{event_end_time}', '{event_title}', '{event_description}', '{event_passed}');
                     """)
             #   pref = cur.fetchall()
             con.commit()
@@ -134,7 +135,7 @@ class Calendar:
         finally:
             if con is not None:
                 con.close()
-# add_event(3, 'bus', 'Tuckerman Ln', 39.0368225, -77.1363598, 'College park', 38.9902899, -76.9356509, '9:30:00', '10:30:00', '05-22-2022', 'work meeting')
+# add_event(1, 'bus', 'democracy blvd', 39.022797, -77.151316, 'college park', 38.991385, -76.937700, '2022-06-11 11:00:00', '2022-06-11 12:00:00', 'work', 'asadasdasd', 0)
         
     def update_event(column_name, column_value, event_id):
         try:
@@ -152,7 +153,7 @@ class Calendar:
             cur.execute(f"""
                     UPDATE public."userData"
                     SET {column_name} = '{column_value}'
-                    WHERE user_id = {event_id}
+                    WHERE event_id = {event_id}
                     """)
             #   pref = cur.fetchall()
             con.commit()
@@ -163,6 +164,134 @@ class Calendar:
             if con is not None:
                 con.close()
 # update_event('user_location', 'Old georgetown Rd', 3)
+
+    def get_closest_event():
+        try:
+            con = psycopg2.connect(
+                        database = "pda",
+                        user = "postgres",
+                        password = "pdapassword"
+                        # database = "postgres",
+                        # user = "farnazzamiri",
+                        # password = "pgadmin"
+                        )
+            print(con)
+            cur = con.cursor()
+
+            cur.execute(f"""
+                        SELECT *
+                        FROM public."userData"
+                        ORDER BY event_passed DESC, event_start_time
+                        FETCH FIRST ROW ONLY;
+                        """)
+            ev = cur.fetchall()
+            con.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if con is not None:
+                con.close()
+                data = json.dumps(ev, default=str)
+                print(data)
+# ev and data return the closest event
+
+    def delete_event(self, event_id):
+        try:
+            con = psycopg2.connect(
+                        database = "pda",
+                        user = "postgres",
+                        password = "pdapassword"
+                        # database = "postgres",
+                        # user = "farnazzamiri",
+                        # password = "pgadmin"
+                        )
+            print(con)
+            cur = con.cursor()
+
+            cur.execute(f"""
+                        DELETE FROM public."userData"
+                        WHERE event_id = {event_id};
+                        """)
+            con.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if con is not None:
+                con.close()
+
+    def search_by_start_time_range(self, rangeStart, rangeEnd):
+        try:
+            con = psycopg2.connect(
+                        database = "pda",
+                        user = "postgres",
+                        password = "pdapassword"
+                        # database = "postgres",
+                        # user = "farnazzamiri",
+                        # password = "pgadmin"
+                        )
+            print(con)
+            cur = con.cursor()
+
+            cur.execute(f"""
+                        SELECT * 
+                        FROM public."userData" 
+                        WHERE event_start_time 
+                        BETWEEN '{rangeStart}' AND '{rangeEnd}';
+                        """)
+            ev = cur.fetchall()
+            con.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if con is not None:
+                con.close()
+                data = json.dumps(ev, default=str)
+                print(data)
+# search_by_start_time_range('2022-06-11 11:00:00', '2022-06-11 12:00:00')
+
+    def get_previous_event_id(self, event_start_time):
+        try:
+            con = psycopg2.connect(
+                        database = "pda",
+                        user = "postgres",
+                        password = "pdapassword"
+                        # database = "postgres",
+                        # user = "farnazzamiri",
+                        # password = "pgadmin"
+                        )
+            print(con)
+            cur = con.cursor()
+
+            cur.execute(f"""
+                        WITH cte AS (
+                            SELECT
+                                event_id, preferences, user_location, user_lat, user_long,
+                                event_location, event_lat, event_long, event_start_time,
+                                event_end_time, event_title, event_description, event_passed,
+                                LAG(event_id,1) OVER (
+                                    ORDER BY event_start_time) previous_event_id,
+                                LAG(event_start_time,1) OVER (
+                                        ORDER BY event_start_time) previous_event_start_time
+                                FROM public."userData"
+                                    )
+                                    SELECT previous_event_id FROM cte WHERE event_start_time = '{event_start_time}';
+                        """)
+            ev = cur.fetchall()
+            con.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if con is not None:
+                con.close()
+                data = json.dumps(ev, default=str)
+                print(data)
+# This function inputs an event start time and outputs the event id of the previous event
+# get_previous_event_id('2022-06-11 14:00:00')
+
 
     def sync(self):
         try:
