@@ -25,16 +25,17 @@ class Navigator:
     def __init__(self):
       self.locations = {}
         
-    def generate_intialized_msg(self, event_id):
-        return {"event_id": event_id, "msg": "navigator_intialized", "date": datetime.now()}
+    def generate_intialized_msg(self, rank):
+        return {"rank": rank, "msg": "navigator_intialized", "date": datetime.now()}
     def generate_navigator_msg(self, event_id, travel_time):
-        return {"event_id": event_id, "travel_time": travel_time, "msg": "navigator_info", "date": datetime.now()}
+        return {"event_id": event_id, "travel_time": travel_time,  "msg": "navigator_info", "date": datetime.now()}
 
+    #def get_travel_time_estimate()
 
     def run(rank, comm):
         n = Navigator()
         a = Actor(rank, comm)
-        m = Message(msg = n.generate_intialized_msg(2), receiver = Dest.TIMEKEEPER, msg_type=Msg_type.INITIALIZED, sender = rank)
+        m = Message(msg = n.generate_intialized_msg(Dest.NAVIGATOR), receiver = Dest.TIMEKEEPER, msg_type=Msg_type.INITIALIZED, sender = rank)
         a.send(m)
         i = 0
         
@@ -48,7 +49,7 @@ class Navigator:
             if tag == Msg_type.NEW_EVENT:
                 r = requests.get(url + "origins=" + user_location + "&destinations=" + msg.msg["location"].address + "&key=" + api_key)
                 # print(r.json())
-                logging.debug(r.json())
+                logging.debug(r.json()) 
                 time = r.json()["rows"][0]["elements"][0]["duration"]["text"]
                 event_id = msg.msg["event_id"]
                 n_msg = n.generate_navigator_msg(event_id, time)
@@ -57,4 +58,6 @@ class Navigator:
 
             elif tag == Msg_type.REQUEST_ESTIMATE:
                 # TODO 
+                pass
+            elif tag == Msg_type.UPDATE_USER_LOCATION:
                 pass
