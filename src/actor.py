@@ -16,6 +16,16 @@ class Actor():
         logging.debug(msg)
         assert isinstance(msg, Message)
         self.comm.isend(msg.msg, dest=msg.receiver, tag=msg.msg_type)
+        
+    # broadcast msg to all destinations
+    def broadcast(msg, exclude = []):
+        r = msg.receiver
+        for d in Dest:
+            if d != self.rank and d not in exclude:
+                msg.receiver = d
+                self.isend(msg)
+        msg.receiver = r
+
 
     # def send(msg, dest=dest, tag=tag)
     #     comm.send(msg, dest=dest, tag=tag)

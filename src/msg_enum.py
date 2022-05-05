@@ -13,4 +13,6 @@ class Msg_type(IntEnum):
     RESPONSE_ESTIMATE=8
     WEATHER_NOTIFICATION=9
 
+    CURR_WEATHER=10 # for demo
+
 

@@ -7,7 +7,6 @@
 	<link rel="stylesheet" href="static/styles/fontawesome-free-5.15.1-web/css/solid.css">
 	<title>Calendar</title>
 
-    <script src="static/scripts/events.js"></script>
     <script src="static/scripts/calendar.js"></script>
     <script>
         notif_interval = 60;
@@ -47,7 +46,9 @@
                 body: JSON.stringify(coords),
             });
         });
-
+    </script>
+    <script>
+        data = {{ eventData|safe }};
     </script>
 </head>
 <body>
