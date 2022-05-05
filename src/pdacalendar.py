@@ -192,8 +192,9 @@ class Calendar:
         finally:
             if con is not None:
                 con.close()
-                print(ev)
-# ev returns the closest event
+                data = json.dumps(ev, default=str)
+                print(data)
+# ev and data return the closest event
 
     def delete_event(self, event_id):
         try:
