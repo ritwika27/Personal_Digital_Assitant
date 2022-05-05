@@ -113,53 +113,32 @@ function openEventDetails(data) {
     desc.innerHTML = data.desc;
     container.appendChild(desc);
 
-    if (data.roomNum) {
-        const map = document.createElement("a");
-        map.setAttribute("href", "map.html?goto=" + data.roomNum);
-        map.textContent = "Find on map";
-        time.appendChild(map);
-    }
+    const map = document.createElement("a");
+    map.setAttribute("href", "");
+    map.textContent = data.location;
+    time.appendChild(map);
 
     const links = document.createElement("div");
     links.setAttribute("id", "links");
-    if (data.detailsLink) {
-        const more = document.createElement("div");
-        more.setAttribute("class", "linkAndQr");
-        const details = document.createElement("a");
-        details.href = data.infoLink || "";
-        details.textContent = "More Info";
-        more.appendChild(details);
 
-        /*const qrmore = document.createElement("div");
-        qrmore.setAttribute("id", "qrmore");
-        qrmore.setAttribute("class", "qr");
-        new QRCode(qrmore, data.detailsLink);
-        more.appendChild(qrmore);*/
+    const edit = document.createElement("div");
+    edit.setAttribute("class", "linkAndQr");
+    const details = document.createElement("a");
+    details.textContent = "Edit";
+    details.href = "#";
+    details.onclick = () => openAddEventForm(data);
+    edit.appendChild(details);
+    links.appendChild(edit);
 
-        links.appendChild(more);
-    }
-    if (data.registerLink) {
-        const next = document.createElement("div");
-        next.setAttribute("class", "linkAndQr");
-        const signup = document.createElement("a");
-        signup.href = data.registerLink || "";
-        signup.textContent = data.registerText || "";
-        next.appendChild(signup);
-
-        /*const qrnext = document.createElement("div");
-        qrnext.setAttribute("id", "qr");
-        qrnext.setAttribute("class", "qr");
-        new QRCode(qrnext, data.registerLink);
-        next.appendChild(qrnext);*/
-
-        links.appendChild(next);
-    }
     container.appendChild(links);
-
     popup(container);
 }
 
 function popup(content, callback) {
+    // Remove shade if it exists already
+    const oldShade = document.getElementById("curtain");
+    if (oldShade) oldShade.remove();
+
     const shade = document.createElement("div");
     shade.setAttribute("id", "curtain");
     if (callback) shade.onclick = callback;
@@ -184,32 +163,45 @@ function openWeekSelector() {
     popup(fill);
 }
 
-function openAddEventForm() {
+function openAddEventForm(data) {
     const shell = document.createElement("div");
+    let initial = {
+      "id": data.id || "",
+      "name": data.name || "",
+      "time": data.time || "",
+      "duration": data.duration || "",
+      "location": data.location || "",
+      "desc": data.desc || ""
+    }
     shell.innerHTML = `
-        <form id="addEventForm" action="/addEvent">
+        <form id="addEventForm">
             <span>
                 <label for="eventName">Event Name</label>
-                <input id="eventName" name="title" required></input>
+                <input id="eventName" name="title" value="${initial.name}" required>
             </span>
             <span>
                 <label for="startTime">Start Time</label>
-                <input id="startTime" name="start" type="datetime-local" required></input>
+                <input id="startTime" name="start" type="datetime-local" value="${new Date(initial.time).toISOString().slice(0, 16)}" required>
             </span>
             <span>
                 <label for="endTime">End Time</label>
-                <input id="endTime" name="end" type="datetime-local" required></input>
+                <input id="endTime" name="end" type="datetime-local" value="${new Date(Date.parse(initial.time) + 60000 * initial.duration).toISOString().slice(0, 16)}" required>
             </span>
             <span>
                 <label for="location">Location</label>
-                <input id="location" name="address" required></input>
+                <input id="location" name="address" value="${initial.location}" required>
             </span>
             <span>
                 <label for="description">Description</label>
                 <br />
-                <textarea id="description" name="description" rows="5"></textarea>
+                <textarea id="description" name="description" rows="5">${initial.desc}</textarea>
             </span>
-            <input type="submit" value="Add Event"></input>
+            ${data.id == "" ?
+            `<input type="submit" value="Add Event" formaction="/addEvent"></input>` :
+            `<input type="hidden" id="eventId" name="eventId" value="${initial.id}">
+            <input type="submit" formaction="/deleteEvent" value="Delete"/>
+            <input type="submit" formaction="/updateEvent" value="Update"></input>`
+            }
         </form>
     `;
     popup(shell);
