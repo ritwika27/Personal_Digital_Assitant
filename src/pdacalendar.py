@@ -252,6 +252,47 @@ class Calendar:
                 print(data)
 # search_by_start_time_range('2022-06-11 11:00:00', '2022-06-11 12:00:00')
 
+    def get_previous_event_id(self, event_start_time):
+        try:
+            con = psycopg2.connect(
+                        database = "pda",
+                        user = "postgres",
+                        password = "pdapassword"
+                        # database = "postgres",
+                        # user = "farnazzamiri",
+                        # password = "pgadmin"
+                        )
+            print(con)
+            cur = con.cursor()
+
+            cur.execute(f"""
+                        WITH cte AS (
+                            SELECT
+                                event_id, preferences, user_location, user_lat, user_long,
+                                event_location, event_lat, event_long, event_start_time,
+                                event_end_time, event_title, event_description, event_passed,
+                                LAG(event_id,1) OVER (
+                                    ORDER BY event_start_time) previous_event_id,
+                                LAG(event_start_time,1) OVER (
+                                        ORDER BY event_start_time) previous_event_start_time
+                                FROM public."userData"
+                                    )
+                                    SELECT previous_event_id FROM cte WHERE event_start_time = '{event_start_time}';
+                        """)
+            ev = cur.fetchall()
+            con.commit()
+            cur.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if con is not None:
+                con.close()
+                data = json.dumps(ev, default=str)
+                print(data)
+# This function inputs an event start time and outputs the event id of the previous event
+# get_previous_event_id('2022-06-11 14:00:00')
+
+
     def sync(self):
         try:
             service = build('calendar', 'v3', credentials=self.creds)
