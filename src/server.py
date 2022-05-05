@@ -1,8 +1,8 @@
 import csv
-try:
-    import simplejson as json
+try: 
+	import simplejson as json
 except ImportError:
-    import json
+	import json
 from flask import Flask,request,Response,render_template, redirect, url_for
 import psycopg2
 import sys
@@ -30,7 +30,7 @@ pending_notifs = ["testing first notification"]
 
 # Open up DB connection
 con = psycopg2.connect(
-    #database = "postgres",
+		#database = "postgres",
     #user = "farnazzamiri",
     #password = "pgadmin"
     database = "pda",
@@ -43,18 +43,18 @@ user_lat = None
 user_lon = None
 
 def gen_new_event_msg(address, start_time, end_time, title, user_lat, user_lon, event_description):
-    event_id = int(time.time())
-    location = Location(address = address)
-    user_location = Location(lat = user_lat, lon=user_lon)
-    msg = {'event_id': event_id,
-           'location': location,
-           'title': title,
-           'start_time': datetime.strptime(start_time, time_format),
-           'end_time': datetime.strptime(end_time, time_format),
-           'user_location': user_location,
-           'event_description': event_description
-           }
-    return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
+	event_id = int(time.time())
+	location = Location(address = address)
+	user_location = Location(lat = user_lat, lon=user_lon)
+	msg = {'event_id': event_id,
+			'location': location,
+			'title': title,
+			'start_time': datetime.strptime(start_time, time_format),
+			'end_time': datetime.strptime(end_time, time_format),
+			'user_location': user_location,
+			'event_description': event_description
+			}
+	return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
 
 
 @app.route('/')
@@ -77,10 +77,10 @@ def renderPage():
       "desc": event[3]
     }
 
-  eventData = list(map(mapData, events))
-  """events = [
-    {
-        "name": "Potato PI",
+	eventData = list(map(mapData, events))
+	"""events = [
+		{
+				"name": "Potato PI",
         "time": "23 Apr 2022 16:00:00",
         "duration": "150",
         "roomNum": "2116",
@@ -89,17 +89,17 @@ def renderPage():
         "registerText": "Sign up here",
         "detailsLink": "https://youtu.be/ub82Xb1C8os"
     }
-  ];"""
-  return render_template("calendar.html", eventData=json.dumps(eventData))
+	];"""
+	return render_template("calendar.html", eventData=json.dumps(eventData))
 
 @app.route('/addEvent', methods=['GET', 'POST'])
 def addEvent():
   print(request)
   # print(datetime.strptime(request.values['start'], time_format))
-  # TODO: change last None to actual location
+	# TODO: change last None to actual location
   if actor == None:
-      print("running webserver independently, ignoring sending message")
-      return redirect(url_for('renderPage'))
+    print("running webserver independently, ignoring sending message")
+    return redirect(url_for('renderPage'))
 
   print("lat:", user_lat,
         "\nlon:", user_lon)
@@ -129,26 +129,26 @@ def checkNotifs():
 
 @app.route('/relayPosition', methods=['POST'])
 def relayPosition():
-    logging.debug("From user: lat: {}\tlon: {}".format(request.json['lat'], request.json['lon']))
-    global user_lat
-    global user_lon
-    user_lat = request.json['lat']
-    user_lon = request.json['lon']
-    print("lat:", user_lat,
-          "\nlon:", user_lon)
-    l = Location(lat = user_lat, lon = user_lon)
-    m = Message(msg = l, msg_type=Msg_type.UPDATE_USER_LOCATION, sender=actor.rank, receiver=Dest.SCHEDULER)
-    actor.broadcast(m)
-    return Response(status=204)
+	logging.debug("From user: lat: {}\tlon: {}".format(request.json['lat'], request.json['lon']))
+	global user_lat
+	global user_lon
+	user_lat = request.json['lat']
+	user_lon = request.json['lon']
+	print("lat:", user_lat,
+				"\nlon:", user_lon)
+	l = Location(lat = user_lat, lon = user_lon)
+	m = Message(msg = l, msg_type=Msg_type.UPDATE_USER_LOCATION, sender=actor.rank, receiver=Dest.SCHEDULER)
+	actor.broadcast(m)
+	return Response(status=204)
 
 @app.route('/preferences')
 def preferences():
   cur = con.cursor()
   cur.execute(f"""
-        SELECT *
-        FROM
-            public."userData";
-        """)
+				SELECT *
+				FROM
+						public."userData";
+				""")
   pref = cur.fetchall()
   cur.close()
 
