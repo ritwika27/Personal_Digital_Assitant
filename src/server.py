@@ -1,8 +1,8 @@
 import csv
-try:
-    import simplejson as json
+try: 
+	import simplejson as json
 except ImportError:
-    import json
+	import json
 from flask import Flask,request,Response,render_template, redirect, url_for
 import psycopg2
 import sys
@@ -30,7 +30,7 @@ pending_notifs = ["testing first notification"]
 
 # Open up DB connection
 con = psycopg2.connect(
-    #database = "postgres",
+		#database = "postgres",
     #user = "farnazzamiri",
     #password = "pgadmin"
     database = "pda",
@@ -43,41 +43,38 @@ user_lat = None
 user_lon = None
 
 def gen_new_event_msg(address, start_time, end_time, title, user_lat, user_lon, event_description):
-    event_id = int(time.time())
-    location = Location(address = address)
-    user_location = Location(lat = user_lat, lon=user_lon)
-    msg = {'event_id': event_id,
-           'location': location,
-           'title': title,
-           'start_time': datetime.strptime(start_time, time_format),
-           'end_time': datetime.strptime(end_time, time_format),
-           'user_location': user_location,
-           'event_description': event_description
-           }
-    return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
+	event_id = int(time.time())
+	location = Location(address = address)
+	user_location = Location(lat = user_lat, lon=user_lon)
+	msg = {'event_id': event_id,
+			'location': location,
+			'title': title,
+			'start_time': datetime.strptime(start_time, time_format),
+			'end_time': datetime.strptime(end_time, time_format),
+			'user_location': user_location,
+			'event_description': event_description
+			}
+	return Message(msg = msg, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
 
 
 @app.route('/')
 def renderPage():
   cur = con.cursor()
-  cur.execute(f"""
-        SELECT event_title, event_start_time, event_end_time, event_description, event_location
-        FROM public."userData";
-  """)
+  cur.execute(f"""SELECT event_title, event_start_time, event_end_time, event_description, event_location FROM public."userData";""")
   events = cur.fetchall()
   cur.close()
 
   def mapData(event):
-    return {
-      "name": event[0],
-      "time": event[1].strftime("%d %b %Y %X"),
-      "duration": (event[2] - event[1]).total_seconds() / 60,
-      "desc": event[3]
-    }
+		return {
+				"name": event[0],
+				"time": event[1].strftime("%d %b %Y %X"),
+				"duration": (event[2] - event[1]).total_seconds() / 60,
+				"desc": event[3]
+				}
 
-  eventData = list(map(mapData, events))
-  """events = [
-    {
+	eventData = list(map(mapData, events))
+	"""events = [
+		{
         "name": "Potato PI",
         "time": "23 Apr 2022 16:00:00",
         "duration": "150",
@@ -96,15 +93,15 @@ def addEvent():
   # print(datetime.strptime(request.values['start'], time_format))
   # TODO: change last None to actual location
   if actor == None:
-      print("running webserver independently, ignoring sending message")
-      return redirect(url_for('renderPage'))
+		print("running webserver independently, ignoring sending message")
+		return redirect(url_for('renderPage'))
 
-  print("lat:", user_lat,
-        "\nlon:", user_lon)
+	print("lat:", user_lat,
+			"\nlon:", user_lon)
 
-  actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title'], user_lat, user_lon, request.values['description']))
+	actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title'], user_lat, user_lon, request.values['description']))
 
-  return redirect(url_for('renderPage'))
+	return redirect(url_for('renderPage'))
 
 @app.route('/checkNotifs')
 def checkNotifs():
@@ -117,27 +114,27 @@ def checkNotifs():
 
 @app.route('/relayPosition', methods=['POST'])
 def relayPosition():
-    logging.debug("From user: lat: {}\tlon: {}".format(request.json['lat'], request.json['lon']))
-    global user_lat
-    global user_lon
-    user_lat = request.json['lat']
-    user_lon = request.json['lon']
-    print("lat:", user_lat,
-          "\nlon:", user_lon)
-    l = Location(lat = user_lat, lon = user_lon)
-    m = Message(msg = l, msg_type=Msg_type.UPDATE_USER_LOCATION, sender=actor.rank, receiver=Dest.SCHEDULER)
-    actor.broadcast(m)
-    return Response(status=204)
+	logging.debug("From user: lat: {}\tlon: {}".format(request.json['lat'], request.json['lon']))
+	global user_lat
+	global user_lon
+	user_lat = request.json['lat']
+	user_lon = request.json['lon']
+	print("lat:", user_lat,
+				"\nlon:", user_lon)
+	l = Location(lat = user_lat, lon = user_lon)
+	m = Message(msg = l, msg_type=Msg_type.UPDATE_USER_LOCATION, sender=actor.rank, receiver=Dest.SCHEDULER)
+	actor.broadcast(m)
+	return Response(status=204)
 
 @app.route('/preferences')
 def preferences():
   cur = con.cursor()
   cur.execute(f"""
-        SELECT *
-        FROM
-            public."userData";
-        """)
-  pref = cur.fetchall()
+				SELECT *
+				FROM
+						public."userData";
+				""")
+	pref = cur.fetchall()
   cur.close()
 
   print(pref)
