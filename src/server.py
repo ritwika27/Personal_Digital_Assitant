@@ -61,7 +61,7 @@ def gen_new_event_msg(address, start_time, end_time, title, user_lat, user_lon, 
 def renderPage():
   cur = con.cursor()
   cur.execute(f"""
-        SELECT event_title, event_start_time, event_end_time, event_description, event_location
+        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id
         FROM public."userData";
   """)
   events = cur.fetchall()
@@ -69,9 +69,11 @@ def renderPage():
 
   def mapData(event):
     return {
+      "id": event[5],
       "name": event[0],
       "time": event[1].strftime("%d %b %Y %X"),
       "duration": (event[2] - event[1]).total_seconds() / 60,
+      "location": event[4],
       "desc": event[3]
     }
 
@@ -102,8 +104,18 @@ def addEvent():
   print("lat:", user_lat,
         "\nlon:", user_lon)
 
-  actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title'], user_lat, user_lon, request.values['description']))
+  actor.isend(gen_new_event_msg(request.values['address'], request.values['start'], request.values['end'], request.values['title'], user_lat, user_lon, request.values['description'], 0))
 
+  return redirect(url_for('renderPage'))
+
+@app.route('/updateEvent', methods=['GET', 'POST'])
+def editEvent():
+  print(request)
+  return redirect(url_for('renderPage'))
+
+@app.route('/deleteEvent', methods=['GET', 'POST'])
+def deleteEvent():
+  print(request)
   return redirect(url_for('renderPage'))
 
 @app.route('/checkNotifs')
