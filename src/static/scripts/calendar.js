@@ -5,7 +5,7 @@ function initializeListeners() {
     document.querySelector("#week-select div:first-child").onclick = () => changeWeek(-1);
     document.querySelector("#week-select div:last-child").onclick = () => changeWeek(1);
     document.getElementById("currentText").onclick = openWeekSelector;
-    document.getElementById("addEvent").onclick = openAddEventForm;
+    document.getElementById("addEvent").onclick =  openAddEventForm;
 }
 
 window.addEventListener('load', initializeCalendar);
@@ -126,7 +126,7 @@ function openEventDetails(data) {
     const details = document.createElement("a");
     details.textContent = "Edit";
     details.href = "#";
-    details.onclick = () => openAddEventForm(data);
+    details.onclick = () => openUpdateEventForm(data);
     edit.appendChild(details);
     links.appendChild(edit);
 
@@ -163,16 +163,51 @@ function openWeekSelector() {
     popup(fill);
 }
 
-function openAddEventForm(data) {
+function openAddEventForm() {
     const shell = document.createElement("div");
-    let initial = {
-      "id": data.id || "",
-      "name": data.name || "",
-      "time": data.time || "",
-      "duration": data.duration || "",
-      "location": data.location || "",
-      "desc": data.desc || ""
-    }
+    shell.innerHTML = `
+        <form id="addEventForm">
+            <span>
+                <label for="eventName">Event Name</label>
+                <input id="eventName" name="title" value="" required>
+            </span>
+            <span>
+                <label for="startTime">Start Time</label>
+                <input id="startTime" name="start" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}" required>
+            </span>
+            <span>
+                <label for="endTime">End Time</label>
+                <input id="endTime" name="end" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}" required>
+            </span>
+            <span>
+                <label for="location">Location</label>
+                <input id="location" name="address" value="" required>
+            </span>
+            <span>
+                <label for="description">Description</label>
+                <br />
+                <textarea id="description" name="description" rows="5"></textarea>
+            </span>
+            <input type="submit" value="Add Event" formaction="/addEvent"></input>
+        </form>
+    `;
+    popup(shell);
+}
+
+
+function openUpdateEventForm(data) {
+    const shell = document.createElement("div");
+		let initial = {}
+		if(data){
+			initial = {
+				"id": data.id || "",
+				"name": data.name || "",
+				"time": data.time || "",
+				"duration": data.duration || "",
+				"location": data.location || "",
+				"desc": data.desc || ""
+			}
+		}
     shell.innerHTML = `
         <form id="addEventForm">
             <span>
@@ -196,16 +231,14 @@ function openAddEventForm(data) {
                 <br />
                 <textarea id="description" name="description" rows="5">${initial.desc}</textarea>
             </span>
-            ${data ?
-            `<input type="submit" value="Add Event" formaction="/addEvent"></input>` :
-            `<input type="hidden" id="eventId" name="eventId" value="${initial.id}">
+            <input type="hidden" id="eventId" name="eventId" value="${initial.id}">
             <input type="submit" formaction="/deleteEvent" value="Delete"/>
-            <input type="submit" formaction="/updateEvent" value="Update"></input>`
-            }
+            <input type="submit" formaction="/updateEvent" value="Update"></input>
         </form>
     `;
     popup(shell);
 }
+
 
 function showNotification(notificationText) {
     const fill = document.createTextNode(notificationText);
