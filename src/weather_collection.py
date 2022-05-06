@@ -76,9 +76,9 @@ def get_weather_info(loc, start_time):
     w = Weather() 
     for forecast in data:
         unix_time = int(unix_time)
-        print(unix_time)
-        print(unix_time % hour)
-        print(forecast["dt"])
+        # print(unix_time)
+        # print(unix_time % hour)
+        # print(forecast["dt"])
         if forecast["dt"] == unix_time - (unix_time % hour): 
             icon_code = forecast['weather'][0]['icon']
             url = weather_icon_url  + icon_code + url_2

@@ -181,11 +181,11 @@ function openAddEventForm(data) {
             </span>
             <span>
                 <label for="startTime">Start Time</label>
-                <input id="startTime" name="start" type="datetime-local" value="${new Date(initial.time).toISOString().slice(0, 16)}" required>
+                <input id="startTime" name="start" type="datetime-local" value="${(initial.time ? new Date(initial.time) : new Date()).toISOString().slice(0, 16)}" required>
             </span>
             <span>
                 <label for="endTime">End Time</label>
-                <input id="endTime" name="end" type="datetime-local" value="${new Date(Date.parse(initial.time) + 60000 * initial.duration).toISOString().slice(0, 16)}" required>
+                <input id="endTime" name="end" type="datetime-local" value="${(initial.time ? (new Date(Date.parse(initial.time) + 60000 * initial.duration)) : (new Date())).toISOString().slice(0, 16)}" required>
             </span>
             <span>
                 <label for="location">Location</label>
@@ -196,7 +196,7 @@ function openAddEventForm(data) {
                 <br />
                 <textarea id="description" name="description" rows="5">${initial.desc}</textarea>
             </span>
-            ${data.id == "" ?
+            ${data ?
             `<input type="submit" value="Add Event" formaction="/addEvent"></input>` :
             `<input type="hidden" id="eventId" name="eventId" value="${initial.id}">
             <input type="submit" formaction="/deleteEvent" value="Delete"/>
