@@ -34,8 +34,9 @@ def convert_unix_time_to_utc(unix_time):
     return datetime.fromtimestamp(unix_time, datetime.timezone.utc)
 
 def getHourlyForecast(loc):
-    exclude = "current,minutely,daily"
-    url = "https://api.openweathermap.org/data/2.5/onecall?lat=%s&lon=%s&exclude=%s&appid=%s&units=imperial" % (loc.lat, loc.lon, exclude, api_key)
+    #exclude = "current,minutely,daily"
+    #url = "https://api.openweathermap.org/data/2.5/onecall?lat=%s&lon=%s&exclude=%s&appid=%s&units=imperial" % (loc.lat, loc.lon, exclude, api_key)
+    url = "https://api.openweathermap.org/data/2.5/onecall?lat=%s&lon=%s&appid=%s&units=imperial" % (loc.lat, loc.lon, api_key)
     response = rq.get(url)
     data = json.loads(response.text)
     return data["hourly"]
@@ -86,21 +87,25 @@ def get_weather_info(loc, start_time):
             return w
 
 def check_weather(loc):
+    data = getHourlyForecast(loc)
+    print(data)
+    print(data["minutely"])
     w = get_current_weather_info(loc).format_dict()
-    alert = ""
-    notif = ""
-    notify = False
-    is_alert = False
-    for key in weather_trigger_params: 
-        value = weather_trigger_params[key]
-        if w[key] <=value["min"]: 
-            notif += (value["min_desc"] + " ")
-            notify = True
-        if w[key] >= value["max"]:
-            notif += (value["max_desc"] + " ")
-            notify = True
+    print(w)
+    # alert = ""
+    # notif = ""
+    # notify = False
+    # is_alert = False
+    # for key in weather_trigger_params: 
+    #     value = weather_trigger_params[key]
+    #     if w[key] <=value["min"]: 
+    #         notif += (value["min_desc"] + " ")
+    #         notify = True
+    #     if w[key] >= value["max"]:
+    #         notif += (value["max_desc"] + " ")
+    #         notify = True
 
     #TODO Add alert check
      
-    return {"alert_msg": alert, "notification": notif, "notify": notify, "is_alert": is_alert}
+    #return {"alert_msg": alert, "notification": notif, "notify": notify, "is_alert": is_alert}
 
