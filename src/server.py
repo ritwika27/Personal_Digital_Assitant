@@ -28,6 +28,10 @@ actor = None
 
 # notifications from backend entities
 pending_notifs = ["testing first notification"]
+weather = {
+  "updated": False,
+  "content": tuple(),
+}
 
 # Open up DB connection
 con = psycopg2.connect(
@@ -95,6 +99,9 @@ def renderPage():
   eventData = list(map(mapData, events))
   upcomingData = mapData(upcoming)
 
+  # TODO: Add weather of upcoming event to the item, probably via `upcomingData["weather"] = ???`
+  #       Which could be a tuple or something i.e. ("link/to/weather/icon.jpg", "48-55deg", "30% Rain")
+
   return render_template("calendar.html", eventData=json.dumps(eventData), upcoming=upcomingData)
 
 @app.route('/addEvent', methods=['GET', 'POST'])
@@ -132,14 +139,21 @@ def deleteEvent():
   print(request)
   return redirect(url_for('renderPage'))
 
-@app.route('/checkNotifs')
-def checkNotifs():
+@app.route('/checkUpdates')
+def checkUpdates():
+  updates = dict()
   if len(pending_notifs) > 0:
-    return {
+    updates["notifs"] = {
       "notif": pending_notifs.pop(),
       "more": len(pending_notifs) > 0
     }
-  else: return { "notif": "", "more": False }
+  else: updates["notifs"] = { "notif": "", "more": False }
+
+  if weather["updated"]:
+    updates["weather"] = weather.content;
+    weather["updated"] = False
+
+  return Response(json.dumps(updates), status=200, mimetype='application/json')
 
 @app.route('/relayPosition', methods=['POST'])
 def relayPosition():

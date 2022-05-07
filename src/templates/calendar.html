@@ -9,20 +9,23 @@
 
     <script src="static/scripts/calendar.js"></script>
     <script>
-        notif_interval = 60;
+        interval = 60;
         (async function() {
             pending = false;
             do {
-                await fetch("{{ url_for("checkNotifs") }}")
+                await fetch("{{ url_for("checkUpdates") }}")
                     .then(resp => resp.json())
                     .then(d => {console.log(d); return d;})
                     .then(data => {
-                        pending = data.more;
-                        if (data.notif !== "") showNotification(data.notif);
+                        pending = data.notifs.more;
+                        if (data.notifs.notif !== "")
+                            showNotification(data.notifs.notif);
+                        if (data.weather)
+                            updateWeather(data.weather)
                     })
                 console.log(pending);
             } while (pending);
-            setTimeout(arguments.callee, notif_interval * 1000);
+            setTimeout(arguments.callee, interval * 1000);
         })();
 
         let lastCoords = {

@@ -252,3 +252,9 @@ function showNotification(notificationText) {
     const fill = document.createTextNode(notificationText);
     popup(fill);
 }
+
+function updateWeather(weather) {
+    const box = document.getElementById("currentWeather");
+    // TODO: flesh out once I have full weather data going through
+    box.innerContent = weather;
+}
