@@ -32,6 +32,7 @@ function buildCalendar(date) {
         // build a day td with the square dayBuild
         const col = document.createElement("td");
         if (day == 1 || day == 7) col.setAttribute("class", "weekend");
+        if (square.toDateString() == (new Date()).toDateString()) col.setAttribute("class", "currentDay")
         week.appendChild(col);
 
         const header = document.querySelector("#daygrid th:nth-child(" + day.toString() + ")");

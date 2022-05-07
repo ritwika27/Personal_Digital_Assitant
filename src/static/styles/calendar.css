@@ -83,6 +83,10 @@
     background-clip: padding-box;
 }
 
+#daygrid .currentDay {
+    border: 2px solid red;
+}
+
 #daygrid tr {
 
 }
