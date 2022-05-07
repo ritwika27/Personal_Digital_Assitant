@@ -53,16 +53,25 @@ class Weatherman:
         # update earliest event
         if w.earliest_event_id > event_id:
           w.earliest_event_id = event_id
+          w.next_event = event
         # add to the list of events
-        w.events[event_id] = [event.title, event.event_location, event.start_time, event.end_time]
+        w.events[event_id] = event
         # get weathr forecast info for the event and send to the timekeeper
-        weather = get_weather_info(event.event_location, event.start_time)
-        w_msg = w.generate_weather_msg(event_id, weather)
-        weather_msg = Message(msg = w_msg, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.UPDATE_WEATHER, sender = rank )
-        a.send(weather_msg)
+        event.weather = get_weather_info(event.event_location, event.start_time)
+        #w_msg = w.generate_weather_msg(event_id, weather)
+        weather_msg = Message(msg = event, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.UPDATE_EVENT_WEATHER, sender = rank )
+        a.broadcast(weather_msg, exclude=[Dest.NAVIGATOR, Dest.SCHEDULER])
 
       elif tag == Msg_type.DELETE_EVENT:
-        del w.events[msg.msg["event_id"]]
+        del w.events[msg.msg.event_id]
+
+      elif tag == Msg_type.REQUEST_WEATHER:
+        event = msg.msg
+        event_id = event.event_id
+        event.weather = get_weather_info(event.event_location, event.start_time)
+        #w_msg = w.generate_weather_msg(event_id, weather)
+        weather_msg = Message(msg = event, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.UPDATE_EVENT_WEATHER, sender = rank )
+        a.broadcast(weather_msg, exclude=[Dest.NAVIGATOR, Dest.SCHEDULER])
 
       elif tag == Msg_type.UPDATE_USER_LOCATION:
         #reset current location
@@ -75,7 +84,7 @@ class Weatherman:
           continue
         w_msg = w.generate_weather_msg(w.next_event.event_id, weather)
         #send current weather at current location to WEB
-        weather_msg = Message(msg = w_msg, receiver = Dest.WEB, msg_type=Msg_type.UPDATE_WEATHER, sender = rank )
+        weather_msg = Message(msg = w_msg, receiver = Dest.WEB, msg_type=Msg_type.UPDATE_CURRENT_WEATHER, sender = rank )
         a.send(weather_msg)
             
         # check whether a notification needs to be sent (there is an alert or trigger out of bounds)
@@ -84,5 +93,6 @@ class Weatherman:
         if alert["notify"]: 
           notif_msg = Message(msg = w.generate_weather_notifcation(alert), receiever = Dest.WEB, msg_type = Msg_type.WEATHER_NOTIFICATION, sender = rank)
           a.send(notif_msg)
+        
 
         sys.stdout.flush()
