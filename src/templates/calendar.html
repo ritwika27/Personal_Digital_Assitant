@@ -50,9 +50,27 @@
     <script>
         data = {{ eventData|safe }};
     </script>
+    <script>
+        // Update the time
+        function tickClock() {
+            const now = new Date();
+            const timeString = now.toLocaleString().split(', ').join('<br>');
+            document.getElementById("currentTime").innerHTML = timeString;
+            setTimeout(tickClock, 1000);
+        }
+        window.addEventListener('load', tickClock);
+    </script>
 </head>
 <body>
 <div id="viewport">
+    <div id="current" class="sidepanel">
+        <h2>Now:</h2>
+        <div>
+            <h3 id="currentTime"></h3>
+            <br>
+            <div id="currentWeather"></div>
+        </div>
+    </div>
 
     <div id="calendar">
         <div id="addEvent" class="clickable"><i class="fas fa-plus"></i></div>
@@ -95,6 +113,18 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+    <div id="upcoming" class="sidepanel">
+        <h2>Next Up:</h2>
+        <div>
+            <div class="event"><h3>{{ upcoming.name }}</h3></div>
+            <br>
+            <div id="upcomingTime">{{ upcoming.time }} to<br>{{ upcoming.end }}</div>
+            <div id="upcomingLoc">at <i>{{ upcoming.location }}</i></div>
+            <br>
+            <div id="upcomingDesc">"{{ upcoming.desc }}"</div>
+            <div id="upcomingWeather">{{ upcoming.weather }}</div>
         </div>
     </div>
 

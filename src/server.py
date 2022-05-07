@@ -70,32 +70,29 @@ def renderPage():
         FROM public."userData";
   """)
   events = cur.fetchall()
+  cur.execute(f"""
+        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id
+        FROM public."userData"
+        ORDER BY event_passed DESC, event_start_time
+        FETCH FIRST ROW ONLY;
+  """);
+  upcoming = cur.fetchone()
   cur.close()
 
   def mapData(event):
     return {
       "id": event[5],
       "name": event[0],
-      "time": event[1].strftime("%d %b %Y %X"),
+      "time": event[1].strftime("%d %b %Y %H:%M"),
+      "end": event[2].strftime("%d %b %Y %H:%M"),
       "duration": (event[2] - event[1]).total_seconds() / 60,
       "location": event[4],
       "desc": event[3]
     }
-
   eventData = list(map(mapData, events))
-  """events = [
-    {
-        "name": "Potato PI",
-        "time": "23 Apr 2022 16:00:00",
-        "duration": "150",
-        "roomNum": "2116",
-        "desc": "Come learn how to power your Raspberry PI Server with nothing but a potato!",
-        "registerLink": "https://youtu.be/dQw4w9WgXcQ",
-        "registerText": "Sign up here",
-        "detailsLink": "https://youtu.be/ub82Xb1C8os"
-    }
-  ];"""
-  return render_template("calendar.html", eventData=json.dumps(eventData))
+  upcomingData = mapData(upcoming)
+
+  return render_template("calendar.html", eventData=json.dumps(eventData), upcoming=upcomingData)
 
 @app.route('/addEvent', methods=['GET', 'POST'])
 def addEvent():
