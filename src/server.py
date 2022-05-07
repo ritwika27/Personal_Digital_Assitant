@@ -1,5 +1,5 @@
 import csv
-try: 
+try:
   import simplejson as json
 except ImportError:
   import json
@@ -44,12 +44,12 @@ user_lat = None
 user_lon = None
 
 def gen_new_event_msg(
-    address, 
-    start_time, 
-    end_time, 
-    title, 
-    user_lat, 
-    user_lon, 
+    address,
+    start_time,
+    end_time,
+    title,
+    user_lat,
+    user_lon,
     event_description,
     preference
     ):
@@ -105,18 +105,18 @@ def addEvent():
     print("running webserver independently, ignoring sending message")
     return redirect(url_for('renderPage'))
 
-  print("start {}\tend {}".format(request.values['start'], 
+  print("start {}\tend {}".format(request.values['start'],
           request.values['end']))
   sys.stdout.flush()
   actor.isend(
       gen_new_event_msg(
-          request.values['address'], 
+          request.values['address'],
           datetime.strptime(request.values['start'], time_format),
           datetime.strptime(request.values['end'], time_format),
-          request.values['title'], 
-          user_lat, 
-          user_lon, 
-          request.values['description'], 
+          request.values['title'],
+          user_lat,
+          user_lon,
+          request.values['description'],
           'placeholder' #TODO: change to actual value
           ))
 
