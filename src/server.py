@@ -79,12 +79,15 @@ def renderPage():
   upcoming = cur.fetchone()
   cur.close()
 
+  # TODO: Swap cursor execution out for messages to/from pdacalendar
+  # TODO: Plug in actual estimate from database
   def mapData(event):
     return {
       "id": event[5],
       "name": event[0],
       "time": event[1].strftime("%d %b %Y %H:%M"),
       "end": event[2].strftime("%d %b %Y %H:%M"),
+      "estimate": "soon-ish?",
       "duration": (event[2] - event[1]).total_seconds() / 60,
       "location": event[4],
       "desc": event[3]

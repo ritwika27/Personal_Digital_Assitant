@@ -86,9 +86,12 @@ function populateDay(day, date) {
 function createEvent(data) {
     const ele = document.createElement("div");
     const title = document.createElement("h3");
+    const estimate = document.createElement("p");
     title.textContent = data.name;
+    estimate.textContent = data.estimate;
     ele.addEventListener("click", () => openEventDetails(data));
     ele.appendChild(title);
+    ele.appendChild(estimate);
     return ele;
 }
 
@@ -101,8 +104,12 @@ function openEventDetails(data) {
     title.textContent = data.name;
     const time = document.createElement("p");
     time.setAttribute("class", "eventTime");
+    const ttl = document.createElement("p");
+    ttl.setAttribute("class", "eventEstimate");
+    ttl.textContent = "It will take " + data.estimate + " to arrive";
     container.appendChild(title);
     container.appendChild(time);
+    container.appendChild(ttl);
 
 
     const start = new Date(Date.parse(data.time));

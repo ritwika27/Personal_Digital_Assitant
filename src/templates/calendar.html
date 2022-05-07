@@ -118,7 +118,10 @@
     <div id="upcoming" class="sidepanel">
         <h2>Next Up:</h2>
         <div>
-            <div class="event"><h3>{{ upcoming.name }}</h3></div>
+            <div class="event">
+                <h3>{{ upcoming.name }}</h3>
+                <p>{{ upcoming.estimate }}</p>
+            </div>
             <br>
             <div id="upcomingTime">{{ upcoming.time }} to<br>{{ upcoming.end }}</div>
             <div id="upcomingLoc">at <i>{{ upcoming.location }}</i></div>

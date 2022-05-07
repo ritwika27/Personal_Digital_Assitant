@@ -127,6 +127,10 @@
     float: right;
 }
 
+.eventEstimate {
+    font-style: italic;
+}
+
 #links {
     position: absolute;
     bottom: 0;
