@@ -1,5 +1,5 @@
 import csv
-try: 
+try:
   import simplejson as json
 except ImportError:
   import json
@@ -28,6 +28,10 @@ actor = None
 
 # notifications from backend entities
 pending_notifs = ["testing first notification"]
+weather = {
+  "updated": False,
+  "content": tuple(),
+}
 
 # Open up DB connection
 con = psycopg2.connect(
@@ -44,12 +48,12 @@ user_lat = None
 user_lon = None
 
 def gen_new_event_msg(
-    address, 
-    start_time, 
-    end_time, 
-    title, 
-    user_lat, 
-    user_lon, 
+    address,
+    start_time,
+    end_time,
+    title,
+    user_lat,
+    user_lon,
     event_description,
     preference
     ):
@@ -70,32 +74,35 @@ def renderPage():
         FROM public."userData";
   """)
   events = cur.fetchall()
+  cur.execute(f"""
+        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id
+        FROM public."userData"
+        ORDER BY event_passed DESC, event_start_time
+        FETCH FIRST ROW ONLY;
+  """);
+  upcoming = cur.fetchone()
   cur.close()
 
+  # TODO: Swap cursor execution out for messages to/from pdacalendar
+  # TODO: Plug in actual estimate from database
   def mapData(event):
     return {
       "id": event[5],
       "name": event[0],
-      "time": event[1].strftime("%d %b %Y %X"),
+      "time": event[1].strftime("%d %b %Y %H:%M"),
+      "end": event[2].strftime("%d %b %Y %H:%M"),
+      "estimate": "soon-ish?",
       "duration": (event[2] - event[1]).total_seconds() / 60,
       "location": event[4],
       "desc": event[3]
     }
-
   eventData = list(map(mapData, events))
-  """events = [
-    {
-        "name": "Potato PI",
-        "time": "23 Apr 2022 16:00:00",
-        "duration": "150",
-        "roomNum": "2116",
-        "desc": "Come learn how to power your Raspberry PI Server with nothing but a potato!",
-        "registerLink": "https://youtu.be/dQw4w9WgXcQ",
-        "registerText": "Sign up here",
-        "detailsLink": "https://youtu.be/ub82Xb1C8os"
-    }
-  ];"""
-  return render_template("calendar.html", eventData=json.dumps(eventData))
+  upcomingData = mapData(upcoming)
+
+  # TODO: Add weather of upcoming event to the item, probably via `upcomingData["weather"] = ???`
+  #       Which could be a tuple or something i.e. ("link/to/weather/icon.jpg", "48-55deg", "30% Rain")
+
+  return render_template("calendar.html", eventData=json.dumps(eventData), upcoming=upcomingData)
 
 @app.route('/addEvent', methods=['GET', 'POST'])
 def addEvent():
@@ -105,18 +112,18 @@ def addEvent():
     print("running webserver independently, ignoring sending message")
     return redirect(url_for('renderPage'))
 
-  print("start {}\tend {}".format(request.values['start'], 
+  print("start {}\tend {}".format(request.values['start'],
           request.values['end']))
   sys.stdout.flush()
   actor.send(
       gen_new_event_msg(
-          request.values['address'], 
+          request.values['address'],
           datetime.strptime(request.values['start'], time_format),
           datetime.strptime(request.values['end'], time_format),
-          request.values['title'], 
-          user_lat, 
-          user_lon, 
-          request.values['description'], 
+          request.values['title'],
+          user_lat,
+          user_lon,
+          request.values['description'],
           'placeholder' #TODO: change to actual value
           ))
 
@@ -132,14 +139,21 @@ def deleteEvent():
   print(request)
   return redirect(url_for('renderPage'))
 
-@app.route('/checkNotifs')
-def checkNotifs():
+@app.route('/checkUpdates')
+def checkUpdates():
+  updates = dict()
   if len(pending_notifs) > 0:
-    return {
+    updates["notifs"] = {
       "notif": pending_notifs.pop(),
       "more": len(pending_notifs) > 0
     }
-  else: return { "notif": "", "more": False }
+  else: updates["notifs"] = { "notif": "", "more": False }
+
+  if weather["updated"]:
+    updates["weather"] = weather.content;
+    weather["updated"] = False
+
+  return Response(json.dumps(updates), status=200, mimetype='application/json')
 
 @app.route('/relayPosition', methods=['POST'])
 def relayPosition():

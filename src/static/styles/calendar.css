@@ -1,5 +1,10 @@
 /* calendar.css */
 
+#viewport {
+    display: flex;
+    flex-direction: row;
+}
+
 #calendar {
     display: flex;
 	width: 1200px;
@@ -78,6 +83,10 @@
     background-clip: padding-box;
 }
 
+#daygrid .currentDay {
+    border: 2px solid red;
+}
+
 #daygrid tr {
 
 }
@@ -116,6 +125,10 @@
 
 .eventTime a {
     float: right;
+}
+
+.eventEstimate {
+    font-style: italic;
 }
 
 #links {
@@ -226,6 +239,36 @@
     position: relative;
     left: 2px;
     bottom: 8px;
+}
+
+.sidepanel {
+	width: 200px;
+	height: 900px;
+    position: relative;
+    align-items: center;
+    margin: 0 auto;
+    padding: 5px;
+}
+
+.sidepanel > div {
+    border: 1px solid black;
+    padding: 10px;
+}
+
+#upcoming div.event {
+    box-sizing: border-box;
+    padding: 10px 3px;
+    font-family: sans-serif;
+    font-size: 10px;
+    background-color: blue;
+    border-radius: 3px;
+    color: white;
+
+    /* Override some .event attributes */
+    position: relative;
+    cursor: auto;
+    left: auto;
+    right: auto;
 }
 
 .clickable {

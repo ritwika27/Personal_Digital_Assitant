@@ -81,9 +81,9 @@ class Navigator:
             )
         a.isend(navigator_msg)
       elif tag == Msg_type.REQUEST_ESTIMATE:
-        event_id = msg.msg["event_id"]
+        event = msg.msg
         time = n.get_travel_time_estimate(n.curr_location.address, msg.msg["location"].address, msg.msg["transport_mode"])
-        n_msg = n.generate_navigator_msg(event_id, time)
+        n_msg = n.generate_navigator_msg(event.event_id, time)
         navigator_msg = Message(msg = n_msg, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.RESPONSE_ESTIMATE, sender = rank )
         a.send(navigator_msg) 
         pass
@@ -95,6 +95,6 @@ class Navigator:
         # address = n.locations[n.earliest_event_id].address
         address = n.next_event.event_location.address
         time = n.get_travel_time_estimate(n.curr_location.address, address, n.next_event.preference)
-        n_msg = n.generate_navigator_msg(event_id, time)
+        n_msg = n.generate_navigator_msg(n.next_event.event_id, time)
         navigator_msg = Message(msg = n_msg, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.RESPONSE_ESTIMATE, sender = rank )
         a.send(navigator_msg)               
