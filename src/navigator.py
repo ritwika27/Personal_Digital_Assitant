@@ -7,7 +7,7 @@ from destination_enum import Dest
 import sys
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from actor import Actor
 from message import Message
 from location import Location
@@ -39,7 +39,7 @@ class Navigator:
   def get_travel_time_estimate(self, user_location, address, transport_mode):
     r = requests.get(url + "origins=" + user_location + "&destinations=" + address + "&mode=" + transport_mode + "&departure_time=now" + "&key=" + api_key)
     logging.debug(r.json()) 
-    time = r.json()["rows"][0]["elements"][0]["duration"]["text"]
+    time = timedelta(seconds = r.json()["rows"][0]["elements"][0]["duration"]["value"])
     return time
 
   def run(rank, comm):

@@ -108,7 +108,7 @@ def addEvent():
   print("start {}\tend {}".format(request.values['start'], 
           request.values['end']))
   sys.stdout.flush()
-  actor.isend(
+  actor.send(
       gen_new_event_msg(
           request.values['address'], 
           datetime.strptime(request.values['start'], time_format),

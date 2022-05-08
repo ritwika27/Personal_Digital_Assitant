@@ -10,6 +10,7 @@ class Event():
     self.end_time = end_time
     self.title = title
     self.description = description
+    self.estimate = None # type datetime.timedelta
 
 
   def __str__(self):
