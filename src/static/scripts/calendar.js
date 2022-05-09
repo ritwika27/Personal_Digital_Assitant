@@ -209,13 +209,14 @@ function openUpdateEventForm(data) {
 		if(data){
 			initial = {
 				"id": data.id || "",
-				"name": data.name || "",
+				"name": data.name.substring(1, data.name.length - 1) || "",
 				"time": data.time || "",
 				"duration": data.duration || "",
-				"location": data.location || "",
+				"location": data.location.substring(1, data.location.length - 1) || "",
 				"desc": data.desc || ""
 			}
 		}
+		console.log(initial)
     shell.innerHTML = `
         <form id="addEventForm">
             <span>
