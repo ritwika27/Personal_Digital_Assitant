@@ -145,11 +145,11 @@ def checkUpdates():
   if actor:
     while actor.iprobe():
       msg = actor.recv()
-      # TODO: do something
       if msg.msg_type == Msg_type.UPDATE_ESTIMATE:
         pending_notifs.append(msg.msg['msg'])
         print("got update estimate messgae")
       else:
+        # TODO: do something for weather
         print("got weather msg, ignoring")
         print(msg.msg.__str__())
   sys.stdout.flush()
