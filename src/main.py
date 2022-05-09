@@ -19,10 +19,8 @@ logging.basicConfig(filename="var/logger_{}.log".format(Dest(rank).name), level=
 
 
 if rank == Dest.SCHEDULER:
-  # c = Calendar()
   Calendar.run(rank, comm)
 elif rank == Dest.WEATHERMAN:
-  # Dummy.run(rank, comm)
   Weatherman.run(rank, comm)
 elif rank == Dest.WEB:
   flaskrun(rank, comm)

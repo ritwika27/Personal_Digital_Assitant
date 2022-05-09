@@ -61,7 +61,7 @@ def gen_new_event_msg(
   location = Location(address = address)
   user_location = Location(lat = user_lat, lon=user_lon)
 
-  e = Event(event_id, preference, location, user_location, start_time, end_time, title, event_description)
+  e = Event(event_id, preference, None, location, user_location, start_time, end_time, title, event_description)
 
   return Message(msg = e, sender = actor.rank, msg_type = Msg_type.NEW_EVENT, receiver = Dest.SCHEDULER)
 
@@ -142,6 +142,18 @@ def deleteEvent():
 @app.route('/checkUpdates')
 def checkUpdates():
   updates = dict()
+  if actor:
+    while actor.iprobe():
+      msg = actor.recv()
+      # TODO: do something
+      if msg.msg_type == Msg_type.UPDATE_ESTIMATE:
+        pending_notifs.append(msg.msg['msg'])
+        print("got update estimate messgae")
+      else:
+        print("got weather msg, ignoring")
+        print(msg.msg.__str__())
+  sys.stdout.flush()
+
   if len(pending_notifs) > 0:
     updates["notifs"] = {
       "notif": pending_notifs.pop(),
@@ -158,6 +170,7 @@ def checkUpdates():
 @app.route('/relayPosition', methods=['POST'])
 def relayPosition():
   logging.debug("From user: lat: {}\tlon: {}".format(request.json['lat'], request.json['lon']))
+  print("location updated")
   global user_lat
   global user_lon
   user_lat = request.json['lat']

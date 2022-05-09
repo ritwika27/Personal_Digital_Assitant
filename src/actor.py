@@ -12,6 +12,9 @@ class Actor():
         self.rank = rank
         self.comm = comm
 
+    def iprobe(self):
+        return self.comm.iprobe(source=MPI.ANY_SOURCE)
+
     def isend(self, msg):
         logging.info("{} sending to {}, tag {}".format(Dest(self.rank).name, Dest(msg.receiver).name, Msg_type(msg.msg_type).name))
         logging.debug(msg.__str__())
@@ -49,9 +52,14 @@ class Actor():
         logging.debug(msg.__str__())
         return Message(msg=msg, msg_type=tag, sender=status.Get_source(), receiver=self.rank)
 
-    def recv(self):
+    def recv(self, src=None):
         status = MPI.Status()
-        msg = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+        msg = None
+        if src == None:
+          msg = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+        else:
+          msg = self.comm.recv(source=src, tag=MPI.ANY_TAG, status=status)
+          
         tag = status.Get_tag()
         logging.info("{} received to {}, tag {}".format(Dest(self.rank).name, Dest(status.Get_source()).name, Msg_type(tag).name))
         logging.debug(msg.__str__())
