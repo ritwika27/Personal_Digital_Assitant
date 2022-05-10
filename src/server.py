@@ -27,7 +27,7 @@ app = Flask(__name__)
 actor = None
 
 # notifications from backend entities
-pending_notifs = ["testing first notification"]
+pending_notifs = []
 weather = {
   "updated": False,
   "content": tuple(),
