@@ -60,18 +60,20 @@ class Timekeeper:
     if scheduled_time >= event.start_time:
       self.invalid_event(event)
       return
-    if scheduled_time - estimate_departure_time <= timedelta(minutes = 5):
+    if scheduled_time - estimate_departure_time <= timedelta(minutes = 10):
       self.notify_user(event) 
       event.job = self.scheduler.add_job(self.event_expire, 'date', run_date = event.start_time, args=[event])
     elif scheduled_time - estimate_departure_time <= timedelta(minutes = 30):
-      scheduled_time = estimate_departure_time - timedelta(minutes = 5)
+      scheduled_time = estimate_departure_time - timedelta(minutes = 10)
       event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
     else:
       event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
     logging.info("set up done, will be executed {}".format(scheduled_time))
 
   def notify_user(self, event):
-    msg = Message(msg = {'estimate': event.estimate, 'msg': "should leave"}, msg_type = Msg_type.UPDATE_ESTIMATE, sender = self.actor.rank, receiver = Dest.WEB)
+    leave_msg = "You should leave for {}\t that starts at {}\t. The estimated travel time is {}\t".format(
+      event.title, str(event.start_time), str(event.estimate))
+    msg = Message(msg = {'estimate': event.estimate, 'msg': leave_msg}, msg_type = Msg_type.UPDATE_ESTIMATE, sender = self.actor.rank, receiver = Dest.WEB)
     self.actor.isend(msg)
 
   def invalid_event(self, event):
