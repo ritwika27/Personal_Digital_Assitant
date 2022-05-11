@@ -107,7 +107,7 @@ function openEventDetails(data) {
     time.setAttribute("class", "eventTime");
     const ttl = document.createElement("p");
     ttl.setAttribute("class", "eventEstimate");
-    ttl.textContent = "It will take " + data.estimate + " to arrive";
+    ttl.textContent = "It will take " + data.estimate + " to arrive by " + data.travelPrefs.toLowerCase();
     container.appendChild(title);
     container.appendChild(time);
     container.appendChild(ttl);
@@ -197,6 +197,15 @@ function openAddEventForm() {
                 <input id="location" name="address" value="" required>
             </span>
             <span>
+                <label for="method">Travel Preference</label>
+                <select id="travelPrefs" name="travelPrefs" required>
+                    <option value="Driving">Driving</option>
+                    <option value="Walking">Walking</option>
+                    <option value="Bicycling">Bicycling</option>
+                    <option value="Transit">Transit</option>
+                </select>
+            </span>
+            <span>
                 <label for="description">Description</label>
                 <br />
                 <textarea id="description" name="description" rows="5"></textarea>
@@ -221,7 +230,8 @@ function openUpdateEventForm(data) {
 				"time": data.time || "",
 				"duration": data.duration || "",
 				"location": data.location.substring(1, data.location.length - 1) || "",
-				"desc": data.desc || ""
+				"desc": data.desc || "",
+                "travelPrefs": data.travelPrefs || "",
 			}
 		}
 		console.log(initial)
@@ -251,6 +261,15 @@ function openUpdateEventForm(data) {
             <span>
                 <label for="location">Location</label>
                 <input id="location" name="address" value="${initial.location}" required>
+            </span>
+            <span>
+                <label for="method">Travel Preference</label>
+                <select id="travelPrefs" name="travelPrefs" required>
+                    <option value="Driving" ${(initial.travelPrefs === "Driving" ? "selected" : "")}>Driving</option>
+                    <option value="Walking" ${(initial.travelPrefs === "Walking" ? "selected" : "")}>Walking</option>
+                    <option value="Bicycling" ${(initial.travelPrefs === "Bicycling" ? "selected" : "")}>Bicycling</option>
+                    <option value="Transit" ${(initial.travelPrefs === "Transit" ? "selected" : "")}>Transit</option>
+                </select>
             </span>
             <span>
                 <label for="description">Description</label>
