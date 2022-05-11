@@ -71,7 +71,7 @@ class Calendar:
     print("mapping done")
     for e in event_data:
       msg = Message(msg = e, sender = self.actor.rank, receiver = Dest.TIMEKEEPER, msg_type = Msg_type.NEW_EVENT)
-      if e.start_time < datetime.now():
+      if e.start_time < datetime.now().astimezone():
         self.mark_event_passed(e.event_id)
       else:
         self.actor.broadcast(msg, exclude=[Dest.WEB])
