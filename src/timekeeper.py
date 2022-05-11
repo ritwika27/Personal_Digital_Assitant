@@ -32,14 +32,14 @@ class Timekeeper:
       elif msg.msg_type == Msg_type.NEW_EVENT:
         t.events[msg.msg.event_id] = msg.msg
       elif msg.msg_type == Msg_type.UPDATE_ESTIMATE or msg.msg_type == Msg_type.RESPONSE_ESTIMATE:
-        if msg.msg['event_id'] in t.events:
-          event = t.events[msg.msg['event_id']]
-          event.estimate = msg.msg['travel_time']
+        if msg.msg.event_id in t.events:
+          event = t.events[msg.msg.event_id]
+          event.estimate = msg.msg.estimate
           t.set_up_job(event)
       elif msg.msg_type == Msg_type.UPDATE_EVENT_WEATHER:
         if msg.msg.event_id in t.events:
           event = t.events[msg.msg.event_id]
-          # event.weather = msg.msg['percentage of precepitation']
+          event.weather = msg.msg.weather #contains all weather information, to extract only precipitation: msg.msg.weather.pop
 
       sys.stdout.flush()
 
@@ -70,12 +70,12 @@ class Timekeeper:
   def update_event(self, event, update):
     # scheduled_time = event.start_time - timedelta(minutes = 30)
     # self.scheduler.add_job(self.update_event_5min, 'date', run_date = scheduled_time, args=[event])
-    msg = self.gen_update_request_msg(event)
+    #msg = self.gen_update_request_msg(event)
     logging.info("at 30 minutes prior to event")
-    self.actor.isend(Message(msg = msg, msg_type=Msg_type.REQUEST_ESTIMATE, sender = self.actor.rank, receiver = Dest.NAVIGATOR))
+    self.actor.isend(Message(msg = event, msg_type=Msg_type.REQUEST_ESTIMATE, sender = self.actor.rank, receiver = Dest.NAVIGATOR))
 
-  def gen_update_request_msg(self, event):
-    msg = {"event_id": event.event_id,
-        "prefernece": event.preference,
-        "location": event.event_location}
-    return msg
+  # def gen_update_request_msg(self, event):
+  #   msg = {"event_id": event.event_id,
+  #       "prefernece": event.preference,
+  #       "location": event.event_location}
+  #   return msg
