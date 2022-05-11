@@ -134,7 +134,6 @@ def addEvent():
     .astimezone(timezone.utc)
   )
 
-  print(start_utc)
   sys.stdout.flush()
 
   actor.send(
