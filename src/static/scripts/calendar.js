@@ -207,6 +207,9 @@ function openAddEventForm() {
     popup(shell);
 }
 
+function tzToISOFormat(date) {
+    return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+}
 
 function openUpdateEventForm(data) {
     const shell = document.createElement("div");
@@ -222,8 +225,15 @@ function openUpdateEventForm(data) {
 			}
 		}
 		console.log(initial)
-    const date = new Date();
-    const currentTimeString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+    const date = new Date();    // This is in local tz
+    const laterDate = new Date(Date.now() + 60000 * 60);
+    const startTime = new Date(initial.time);
+    const endTime = new Date(Date.parse(initial.time) + 60000 * initial.duration);
+
+    const currentTimeString = tzToISOFormat(date);
+    const currentLaterTimeString = tzToISOFormat(laterDate);
+    const startTimeString = tzToISOFormat(startTime);
+    const endTimeString = tzToISOFormat(endTime);
     shell.innerHTML = `
         <form id="addEventForm">
             <span>
@@ -232,11 +242,11 @@ function openUpdateEventForm(data) {
             </span>
             <span>
                 <label for="startTime">Start Time</label>
-                <input id="startTime" name="start" type="datetime-local" value="${(initial.time ? new Date(initial.time) : currentTimeString)}" required>
+                <input id="startTime" name="start" type="datetime-local" value="${(initial.time ? startTimeString : currentTimeString)}" required>
             </span>
             <span>
                 <label for="endTime">End Time</label>
-                <input id="endTime" name="end" type="datetime-local" value="${(initial.time ? (new Date(Date.parse(initial.time) + 60000 * initial.duration)) : currentTimeString)}" required>
+                <input id="endTime" name="end" type="datetime-local" value="${(initial.time ? endTimeString : currentLaterTimeString)}" required>
             </span>
             <span>
                 <label for="location">Location</label>
