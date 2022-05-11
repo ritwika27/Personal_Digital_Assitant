@@ -3,7 +3,11 @@
 # DB Setup
 install Postgresql: https://www.postgresql.org/download/  
 
-in the psql command line execute:    
+In order to create the database execute the following command in psql command line:  
+createdb -h localhost -p 5432 -U postgres pda  
+and set the password: pdapassword  
+
+Then, in the psql command line execute:    
 \i /PATH/TO/init.sql  
 
 This will create the required schemas on your database. You can confirm this buy running /dt. If this command shows a table named "userData" you are all set!
