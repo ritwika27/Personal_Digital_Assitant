@@ -77,7 +77,8 @@ def renderPage():
   cur.execute(f"""
         SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id
         FROM public."userData"
-        ORDER BY event_passed DESC, event_start_time
+        WHERE event_start_time > now() AT TIME ZONE 'UTC'
+        ORDER BY event_start_time
         FETCH FIRST ROW ONLY;
   """);
   upcoming = cur.fetchone()
