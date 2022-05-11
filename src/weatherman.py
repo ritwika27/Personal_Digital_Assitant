@@ -78,6 +78,5 @@ class Weatherman:
       if alert["notify"]: 
         n = w.generate_weather_notifcation(alert)
         notif_msg = Message(msg = n, receiver = Dest.WEB, msg_type=Msg_type.UPDATE_CURRENT_WEATHER, sender = rank )
-        print(alert)
         a.send(notif_msg)
       sys.stdout.flush()
