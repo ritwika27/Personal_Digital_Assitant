@@ -59,7 +59,7 @@ function dateAsId(dateObj) {
 function layoutTimeMarks() {
     const marks = document.getElementById("timeMarks");
     for (let i = 0; i < marks.children.length; i++) {
-        marks.children[i].style.top = "calc(100% / 13 * " + i.toString() + " - 10px)";
+        marks.children[i].style.top = "calc(100% / 24 * " + i.toString() + " - 10px)";
     }
 }
 
@@ -75,9 +75,10 @@ function populateDay(day, date) {
         const ele = createEvent(event);
         const time = new Date(Date.parse(event.time));
 
-        const hoursPast = time.getHours() - 7 + (time.getMinutes() / 60);
-        ele.style.top = "calc(100% / 13 *" + hoursPast.toString() + ")";
-        ele.style.height = "calc(100% / 13 *" + (event.duration / 60).toString() + ")";
+        const hoursPast = time.getHours() + (time.getMinutes() / 60);
+        ele.style.top = "calc(100% / 24 *" + hoursPast.toString() + ")";
+        ele.style.height = "calc(100% / 24 *" + (event.duration / 60).toString() + ")";
+        ele.style.backgroundColor = "hsl(" + event.color + ",100%,35%)";
         ele.setAttribute("class", "event");
         day.appendChild(ele);
     }
