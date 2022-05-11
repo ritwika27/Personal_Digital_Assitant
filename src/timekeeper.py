@@ -51,16 +51,17 @@ class Timekeeper:
       sys.stdout.flush()
 
   def set_up_job(self, event):
+    estimate_departure_time = event.start_time - event.estimate
     scheduled_time = max(event.start_time - event.estimate * 2,
-                        event.start_time - (event.start_time - datetime.now())/2)
+                        (event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now())/2)
     if scheduled_time >= event.start_time:
       self.invalid_event(event)
       return
-    if scheduled_time - event.start_time <= timedelta(minutes = 5):
+    if scheduled_time - estimate_departure_time <= timedelta(minutes = 5):
       self.notify_user(event) 
       event.job = self.scheduler.add_job(self.event_expire, 'date', run_date = event.start_time, args=[event])
-    elif scheduled_time - event.start_time <= timedelta(minutes = 30):
-      scheduled_time = event.start_time - timedelta(minutes = 5)
+    elif scheduled_time - estimate_departure_time <= timedelta(minutes = 30):
+      scheduled_time = estimate_departure_time - timedelta(minutes = 5)
       event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
     else:
       event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
@@ -85,7 +86,7 @@ class Timekeeper:
     # scheduled_time = event.start_time - timedelta(minutes = 30)
     # self.scheduler.add_job(self.update_event_5min, 'date', run_date = scheduled_time, args=[event])
     #msg = self.gen_update_request_msg(event)
-    logging.info("at 30 minutes prior to event")
+    logging.info("at {} minutes prior to event", event.estimate)
     self.actor.isend(Message(msg = event, msg_type=Msg_type.REQUEST_ESTIMATE, sender = self.actor.rank, receiver = Dest.NAVIGATOR))
 
   # def gen_update_request_msg(self, event):
