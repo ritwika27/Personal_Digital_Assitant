@@ -2,8 +2,10 @@
 
 # DB Setup
 install Postgresql: https://www.postgresql.org/download/  
-in the psql command line execute  
+
+in the psql command line execute:    
 \i /PATH/TO/init.sql  
+
 This will create the required schemas on your database. You can confirm this buy running /dt. If this command shows a table named "userData" you are all set!
 
 # Set up
