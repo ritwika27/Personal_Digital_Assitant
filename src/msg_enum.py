@@ -18,5 +18,4 @@ class Msg_type(IntEnum):
     REQUEST_WEATHER=11
     ESTIMATE_NOTIFICATION=12
 
-
-
+    EVENT_EXPIRED=13

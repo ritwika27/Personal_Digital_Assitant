@@ -16,6 +16,8 @@ from destination_enum import Dest
 from msg_enum import Msg_type
 from actor import Actor
 from message import Message
+from event import Event
+from location import Location
 
 # # google related modules
 # from google.auth.transport.requests import Request
@@ -31,13 +33,55 @@ api_file.close()
 
 
 class Calendar:
-  def __init__(self):
+  def __init__(self, actor):
     self.user_location = None
+    self.actor = actor
+
+  def init(self):
+    con = psycopg2.connect(
+        #database = "postgres",
+        #user = "farnazzamiri",
+        #password = "pgadmin"
+        database = "pda",
+        user = "postgres",
+        password = "pdapassword"
+    )
+    cur = con.cursor()
+    cur.execute(f"""
+        SELECT 
+        event_title, 
+        event_start_time, 
+        event_end_time, 
+        event_description, 
+        event_id, 
+        preferences, 
+        event_location, 
+        event_lat, 
+        event_long
+        FROM public."userData" where event_passed = 0;
+        """)
+    events = cur.fetchall()
+    def mapData(event):
+      e = Event(event[4], event[5], None, Location(lat = event[7], lon=event[8], address = event[6]), self.user_location, event[1], event[2], event[0], event[3])
+      print(e.__str__())
+      return e
+    event_data = list(map(mapData, events))
+    print("mapping done")
+    for e in event_data:
+      msg = Message(msg = e, sender = self.actor.rank, receiver = Dest.TIMEKEEPER, msg_type = Msg_type.NEW_EVENT)
+      if e.start_time < datetime.now():
+        self.mark_event_passed(e.event_id)
+      else:
+        self.actor.broadcast(msg, exclude=[Dest.WEB])
+    logging.info("scheduler init done!")
+    print("scheduler init done!")
+
 
   def run(rank, comm):
-    c = Calendar()
     a = Actor(rank, comm)
+    c = Calendar(a)
     a.send(Message(msg=0, sender = rank, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.INITIALIZED))
+    init = False
     while True:
       msg = a.recv()
 
@@ -72,9 +116,15 @@ class Calendar:
         a.broadcast(msg, exclude=[Dest.WEB])
       elif msg.msg_type == Msg_type.UPDATE_USER_LOCATION:
         c.user_location = msg.msg
+        if not init:
+          c.init()
+          init = True
       elif msg.msg_type == Msg_type.DELETE_EVENT:
         c.delete_event(msg.msg)
-
+      elif msg.msg_type == Msg_type.UPDATE_ESTIMATE or msg.msg_type == Msg_type.RESPONSE_ESTIMATE:
+        pass
+      elif msg.msg_type == Msg_type.EVENT_EXPIRED:
+        c.mark_event_passed(msg.msg)
 
   def add_event(self, 
       event_id, 
@@ -114,6 +164,33 @@ class Calendar:
       if con is not None:
         con.close()
     # add_event(1, 'bus', 'democracy blvd', 39.022797, -77.151316, 'college park', 38.991385, -76.937700, '2022-06-11 11:00:00', '2022-06-11 12:00:00', 'work', 'asadasdasd', 0)
+
+  def mark_event_passed(self, event_id):
+    try:
+      con = psycopg2.connect(
+          database = "pda",
+          user = "postgres",
+          password = "pdapassword"
+          # database = "postgres",
+          # user = "farnazzamiri",
+          # password = "pgadmin"
+          )
+      cur = con.cursor()
+
+      cur.execute("""
+        UPDATE public."userData"
+        SET event_passed = 1
+        WHERE event_id = %s
+        """, (event_id,))
+      #   pref = cur.fetchall()
+      con.commit()
+      cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+      print(error)
+    finally:
+      if con is not None:
+        con.close()
+
         
   def update_event(self, column_name, column_value, event_id):
     try:

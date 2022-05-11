@@ -137,7 +137,7 @@ def editEvent():
 @app.route('/deleteEvent', methods=['GET', 'POST'])
 def deleteEvent():
   print(request)
-  actor.send(Message(msg = request.values['eventId'], sender = actor.rank, receiver = Dest.SCHEDULER, msg_type = Msg_type.DELETE_EVENT))
+  actor.broadcast(Message(msg = request.values['eventId'], sender = actor.rank, receiver = Dest.SCHEDULER, msg_type = Msg_type.DELETE_EVENT))
   time.sleep(0.2)
   return redirect(url_for('renderPage'))
 

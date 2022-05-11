@@ -40,6 +40,15 @@ class Timekeeper:
         if msg.msg.event_id in t.events:
           event = t.events[msg.msg.event_id]
           # event.weather = msg.msg['percentage of precepitation']
+      elif msg.msg_type == Msg_type.DELETE_EVENT:
+        # remove this event from scheduler
+        event_id = msg.msg
+        if event_id in t.events:
+          event = t.events[msg.msg]
+          if event.job:
+            event.job.remove()
+          del t.events[event_id]
+        
 
       sys.stdout.flush()
 
@@ -51,11 +60,12 @@ class Timekeeper:
       return
     if scheduled_time - event.start_time <= timedelta(minutes = 5):
       self.notify_user(event) 
+      event.job = self.scheduler.add_job(self.event_expire, 'date', run_date = event.start_time, args=[event])
     elif scheduled_time - event.start_time <= timedelta(minutes = 30):
       scheduled_time = event.start_time - timedelta(minutes = 5)
-      self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
+      event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
     else:
-      self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
+      event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
     logging.info("set up done, will be executed {}".format(scheduled_time))
 
   def notify_user(self, event):
@@ -66,6 +76,12 @@ class Timekeeper:
     #TODO: handle this case
     print("ERROR: event starts too soon")
     logging.error("event starts too soon")
+
+  def event_expire(self, event):
+    self.actor.broadcast(Message(msg = event.event_id, sender = self.actor.rank, receiver = Dest.SCHEDULER, msg_type = Msg_type.EVENT_EXPIRED), [Dest.WEB])
+    event.job = None
+    if event.event_id in self.events:
+      del self.events[event.event_id]
 
   def update_event(self, event, update):
     # scheduled_time = event.start_time - timedelta(minutes = 30)

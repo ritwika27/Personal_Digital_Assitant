@@ -63,7 +63,7 @@ class Weatherman:
         a.broadcast(weather_msg, exclude=[Dest.NAVIGATOR, Dest.SCHEDULER])
 
       elif tag == Msg_type.DELETE_EVENT:
-        del w.events[msg.msg.event_id]
+        del w.events[msg.msg]
 
       elif tag == Msg_type.REQUEST_WEATHER:
         event = msg.msg

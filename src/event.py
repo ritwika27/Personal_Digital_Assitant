@@ -14,6 +14,7 @@ class Event():
     self.estimate = None # type datetime.timedelta
     self.scheduled_update_time = None
     self.scheduler_status = None
+    self.job = None
 
 
   def __str__(self):
