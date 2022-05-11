@@ -222,6 +222,7 @@ function openUpdateEventForm(data) {
 			}
 		}
 		console.log(initial)
+    const date = new Date();
     const currentTimeString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
     shell.innerHTML = `
         <form id="addEventForm">
