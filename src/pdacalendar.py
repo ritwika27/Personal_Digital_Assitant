@@ -64,7 +64,7 @@ class Calendar:
             event.end_time,
             event.title,
             event.description,
-            0 if event.start_time > datetime.now() else 1
+            0 if event.start_time > datetime.now().replace(tzinfo=timezone.utc) else 1
             )
 
         msg.sender = rank
