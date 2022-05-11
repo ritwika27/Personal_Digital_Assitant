@@ -174,6 +174,10 @@ function openWeekSelector() {
 
 function openAddEventForm() {
     const shell = document.createElement("div");
+
+    const date = new Date();
+    const startTimeString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+    const endTimeString = new Date(date.getTime() - (date.getTimezoneOffset() - 60) * 60000).toISOString().slice(0, 16);
     shell.innerHTML = `
         <form id="addEventForm">
             <span>
@@ -182,11 +186,11 @@ function openAddEventForm() {
             </span>
             <span>
                 <label for="startTime">Start Time</label>
-                <input id="startTime" name="start" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}" required>
+                <input id="startTime" name="start" type="datetime-local" value="${startTimeString}" required>
             </span>
             <span>
                 <label for="endTime">End Time</label>
-                <input id="endTime" name="end" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}" required>
+                <input id="endTime" name="end" type="datetime-local" value="${endTimeString}" required>
             </span>
             <span>
                 <label for="location">Location</label>
@@ -218,6 +222,7 @@ function openUpdateEventForm(data) {
 			}
 		}
 		console.log(initial)
+    const currentTimeString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
     shell.innerHTML = `
         <form id="addEventForm">
             <span>
@@ -226,11 +231,11 @@ function openUpdateEventForm(data) {
             </span>
             <span>
                 <label for="startTime">Start Time</label>
-                <input id="startTime" name="start" type="datetime-local" value="${(initial.time ? new Date(initial.time) : new Date()).toISOString().slice(0, 16)}" required>
+                <input id="startTime" name="start" type="datetime-local" value="${(initial.time ? new Date(initial.time) : currentTimeString)}" required>
             </span>
             <span>
                 <label for="endTime">End Time</label>
-                <input id="endTime" name="end" type="datetime-local" value="${(initial.time ? (new Date(Date.parse(initial.time) + 60000 * initial.duration)) : (new Date())).toISOString().slice(0, 16)}" required>
+                <input id="endTime" name="end" type="datetime-local" value="${(initial.time ? (new Date(Date.parse(initial.time) + 60000 * initial.duration)) : currentTimeString)}" required>
             </span>
             <span>
                 <label for="location">Location</label>
