@@ -47,6 +47,7 @@ class Calendar:
         password = "pdapassword"
     )
     cur = con.cursor()
+    cur.execute("set timezone to 'UTC'")
     cur.execute(f"""
         SELECT 
         event_title, 
@@ -89,6 +90,7 @@ class Calendar:
 
       if msg.msg_type == Msg_type.NEW_EVENT:
         event = msg.msg
+        print("start time at scheduler {}".format(event.start_time))
 
         # fill up location information
         # assuming event location given in address, user location given in coordinates 
@@ -124,6 +126,7 @@ class Calendar:
       elif msg.msg_type == Msg_type.DELETE_EVENT:
         c.delete_event(msg.msg)
         reply = msg.reply(0, Msg_type.DELETE_COMPLETED)
+        a.isend(reply)
       elif msg.msg_type == Msg_type.UPDATE_ESTIMATE or msg.msg_type == Msg_type.RESPONSE_ESTIMATE:
         pass
       elif msg.msg_type == Msg_type.EVENT_EXPIRED:
@@ -153,6 +156,7 @@ class Calendar:
           # password = "pgadmin"
           )
       cur = con.cursor()
+      cur.execute("set timezone to 'UTC'")
 
       cur.execute("""INSERT INTO public."userData"(event_id, preferences, user_location, user_lat, user_long, event_location, event_lat, event_long, event_start_time, 
       event_end_time, event_title, event_description, event_passed) 

@@ -133,6 +133,7 @@ def addEvent():
     .astimezone()
     .astimezone(timezone.utc)
   )
+  print("start time at server {}".format(start_utc))
 
   sys.stdout.flush()
 
