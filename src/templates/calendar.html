@@ -73,10 +73,10 @@
             <br>
             <div id="currentWeather"></div>
         </div>
+        <div id="addEvent" class="clickable"><i class="fas fa-plus"></i></div>
     </div>
 
     <div id="calendar">
-        <div id="addEvent" class="clickable"><i class="fas fa-plus"></i></div>
         <div id="week-select">
             <div class="button clickable">&lt;</div>
             <h3 id="current">Week of <span id="currentText" class="clickable"></span></h3>
@@ -84,6 +84,13 @@
         </div>
         <div id="week-view">
             <div id="timeMarks">
+                <p>12:00 AM</p>
+                <p>1:00 AM</p>
+                <p>2:00 AM</p>
+                <p>3:00 AM</p>
+                <p>4:00 AM</p>
+                <p>5:00 AM</p>
+                <p>6:00 AM</p>
                 <p>7:00 AM</p>
                 <p>8:00 AM</p>
                 <p>9:00 AM</p>
@@ -98,6 +105,10 @@
                 <p>6:00 PM</p>
                 <p>7:00 PM</p>
                 <p>8:00 PM</p>
+                <p>9:00 PM</p>
+                <p>10:00 PM</p>
+                <p>11:00 PM</p>
+                <p>12:00 PM</p>
             </div>
             <table id="daygrid">
                 <thead>
@@ -121,7 +132,7 @@
     <div id="upcoming" class="sidepanel">
         <h2>Next Up:</h2>
         <div>
-            <div class="event">
+            <div class="event" style="background-color: hsl({{ upcoming.color }},100%,35%)">
                 <h3>{{ upcoming.name }}</h3>
                 <p>{{ upcoming.estimate }}</p>
             </div>

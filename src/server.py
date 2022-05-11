@@ -8,8 +8,9 @@ import psycopg2
 import sys
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import signal
+from hashlib import md5
 
 # self defined modules
 from actor import Actor
@@ -27,7 +28,7 @@ app = Flask(__name__)
 actor = None
 
 # notifications from backend entities
-pending_notifs = ["testing first notification"]
+pending_notifs = []
 weather = {
   "updated": False,
   "content": tuple(),
@@ -77,7 +78,8 @@ def renderPage():
   cur.execute(f"""
         SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id
         FROM public."userData"
-        ORDER BY event_passed DESC, event_start_time
+        WHERE event_start_time > now() AT TIME ZONE 'UTC'
+        ORDER BY event_start_time
         FETCH FIRST ROW ONLY;
   """);
   upcoming = cur.fetchone()
@@ -86,15 +88,24 @@ def renderPage():
   # TODO: Swap cursor execution out for messages to/from pdacalendar
   # TODO: Plug in actual estimate from database
   def mapData(event):
+    # Set to UTC
+    start_time_withtz = event[1].replace(tzinfo=timezone.utc)
+    end_time_withtz = event[2].replace(tzinfo=timezone.utc)
+
+    # Localize to the local timezone (i.e. EST)
+    start_time_withtz = start_time_withtz.astimezone()
+    end_time_withtz = end_time_withtz.astimezone()
+
     return {
       "id": event[5],
       "name": event[0],
-      "time": event[1].strftime("%d %b %Y %H:%M"),
-      "end": event[2].strftime("%d %b %Y %H:%M"),
+      "time": start_time_withtz.strftime("%d %b %Y %H:%M"),
+      "end": end_time_withtz.strftime("%d %b %Y %H:%M"),
       "estimate": "soon-ish?",
       "duration": (event[2] - event[1]).total_seconds() / 60,
       "location": event[4],
-      "desc": event[3]
+      "desc": event[3],
+      "color": int(md5(str(event[5]).encode("utf-8")).hexdigest(), 16) % 360
     }
   eventData = list(map(mapData, events))
   upcomingData = mapData(upcoming)
@@ -106,20 +117,27 @@ def renderPage():
 
 @app.route('/addEvent', methods=['GET', 'POST'])
 def addEvent():
-  # print(request)
-  # print(datetime.strptime(request.values['start'], time_format))
   if actor == None:
     print("running webserver independently, ignoring sending message")
     return redirect(url_for('renderPage'))
 
-  print("start {}\tend {}".format(request.values['start'],
-          request.values['end']))
+  start_utc = (
+    datetime.fromisoformat(request.values['start'])
+    .astimezone()
+    .astimezone(timezone.utc)
+  )
+  end_utc = (
+    datetime.fromisoformat(request.values['end'])
+    .astimezone()
+    .astimezone(timezone.utc)
+  )
   sys.stdout.flush()
+
   actor.send(
       gen_new_event_msg(
           request.values['address'],
-          datetime.strptime(request.values['start'], time_format),
-          datetime.strptime(request.values['end'], time_format),
+          start_utc,
+          end_utc,
           request.values['title'],
           user_lat,
           user_lon,

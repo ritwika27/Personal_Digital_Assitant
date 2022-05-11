@@ -48,7 +48,7 @@ class Actor():
         status = MPI.Status()
         msg = self.comm.wait(status)
         tag = status.Get_tag()
-        logging.info("{} received to {}, tag {}".format(Dest(self.rank).name, Dest(status.Get_source()).name, Msg_type(tag).name))
+        logging.info("{} received from {}, tag {}".format(Dest(self.rank).name, Dest(status.Get_source()).name, Msg_type(tag).name))
         logging.debug(msg.__str__())
         return Message(msg=msg, msg_type=tag, sender=status.Get_source(), receiver=self.rank)
 
@@ -61,7 +61,7 @@ class Actor():
           msg = self.comm.recv(source=src, tag=MPI.ANY_TAG, status=status)
           
         tag = status.Get_tag()
-        logging.info("{} received to {}, tag {}".format(Dest(self.rank).name, Dest(status.Get_source()).name, Msg_type(tag).name))
+        logging.info("{} received from {}, tag {}".format(Dest(self.rank).name, Dest(status.Get_source()).name, Msg_type(tag).name))
         logging.debug(msg.__str__())
         return Message(msg=msg, msg_type=tag, sender=status.Get_source(), receiver=self.rank)
 
