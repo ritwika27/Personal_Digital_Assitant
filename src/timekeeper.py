@@ -1,7 +1,8 @@
 import logging
 import sys
 from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import time
 
 
 
@@ -52,8 +53,10 @@ class Timekeeper:
 
   def set_up_job(self, event):
     estimate_departure_time = event.start_time - event.estimate
+    print(event.start_time)
     scheduled_time = max(event.start_time - event.estimate * 2,
-                        (event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now())/2)
+                        (event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2)
+    print(scheduled_time)
     if scheduled_time >= event.start_time:
       self.invalid_event(event)
       return

@@ -52,17 +52,16 @@ class Actor():
         logging.debug(msg.__str__())
         return Message(msg=msg, msg_type=tag, sender=status.Get_source(), receiver=self.rank)
 
-    def recv(self, src=None):
+    def recv(self, src=None, tag=MPI.ANY_TAG):
         status = MPI.Status()
         msg = None
         if src == None:
           msg = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
         else:
-          msg = self.comm.recv(source=src, tag=MPI.ANY_TAG, status=status)
+          msg = self.comm.recv(source=src, tag=tag, status=status)
           
         tag = status.Get_tag()
         logging.info("{} received from {}, tag {}".format(Dest(self.rank).name, Dest(status.Get_source()).name, Msg_type(tag).name))
         logging.debug(msg.__str__())
         return Message(msg=msg, msg_type=tag, sender=status.Get_source(), receiver=self.rank)
-
 

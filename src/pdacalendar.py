@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import time
 import sys
 import os.path
@@ -62,9 +62,11 @@ class Calendar:
         """)
     events = cur.fetchall()
     def mapData(event):
-      e = Event(event[4], event[5], None, Location(lat = event[7], lon=event[8], address = event[6]), self.user_location, event[1], event[2], event[0], event[3])
+      e = Event(int(event[4]), event[5], None, Location(lat = event[7], lon=event[8], address = event[6]), self.user_location, event[1].replace(tzinfo=timezone.utc), event[2].replace(tzinfo=timezone.utc), event[0], event[3])
       print(e.__str__())
       return e
+    if len(events) == 0:
+      return
     event_data = list(map(mapData, events))
     print("mapping done")
     for e in event_data:
@@ -108,7 +110,7 @@ class Calendar:
             event.end_time,
             event.title,
             event.description,
-            0 if event.start_time > datetime.now().replace(tzinfo=timezone.utc) else 1
+            0 if event.start_time > datetime.now().astimezone() else 1
             )
 
         msg.sender = rank
@@ -121,6 +123,7 @@ class Calendar:
           init = True
       elif msg.msg_type == Msg_type.DELETE_EVENT:
         c.delete_event(msg.msg)
+        reply = msg.reply(0, Msg_type.DELETE_COMPLETED)
       elif msg.msg_type == Msg_type.UPDATE_ESTIMATE or msg.msg_type == Msg_type.RESPONSE_ESTIMATE:
         pass
       elif msg.msg_type == Msg_type.EVENT_EXPIRED:

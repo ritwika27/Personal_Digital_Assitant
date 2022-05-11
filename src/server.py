@@ -88,6 +88,8 @@ def renderPage():
   # TODO: Swap cursor execution out for messages to/from pdacalendar
   # TODO: Plug in actual estimate from database
   def mapData(event):
+    if event == None:
+      return
     # Set to UTC
     start_time_withtz = event[1].replace(tzinfo=timezone.utc)
     end_time_withtz = event[2].replace(tzinfo=timezone.utc)
@@ -131,6 +133,8 @@ def addEvent():
     .astimezone()
     .astimezone(timezone.utc)
   )
+
+  print(start_utc)
   sys.stdout.flush()
 
   actor.send(
@@ -156,7 +160,11 @@ def editEvent():
 def deleteEvent():
   print(request)
   actor.broadcast(Message(msg = request.values['eventId'], sender = actor.rank, receiver = Dest.SCHEDULER, msg_type = Msg_type.DELETE_EVENT))
-  time.sleep(0.2)
+  msg = actor.recv(src=Dest.SCHEDULER, tag=Msg_type.DELETE_COMPLETED)
+
+  if msg != 0:
+    logging.error("Deletion failed!")
+
   return redirect(url_for('renderPage'))
 
 @app.route('/checkUpdates')
