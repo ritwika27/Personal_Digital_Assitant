@@ -56,14 +56,17 @@ class Timekeeper:
     print("event start time {}".format(event.start_time))
     scheduled_time = max(event.start_time - event.estimate * 2,
                         (event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2)
+    print("start_time - estimate * 2: {}".format(event.start_time - event.estimate*2))
+    print("start_time - estimate -start time - estimate - now: {}".format((event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2))
     print("scheduled time {}".format(scheduled_time))
+    print("estimate time: {}".format(estimate_departure_time))
     if scheduled_time >= event.start_time:
       self.invalid_event(event)
       return
-    if scheduled_time - estimate_departure_time <= timedelta(minutes = 10):
+    if estimate_departure_time - scheduled_time <= timedelta(minutes = 10):
       self.notify_user(event) 
       event.job = self.scheduler.add_job(self.event_expire, 'date', run_date = event.start_time, args=[event])
-    elif scheduled_time - estimate_departure_time <= timedelta(minutes = 30):
+    elif estimate_departure_time - scheduled_time <= timedelta(minutes = 30):
       scheduled_time = estimate_departure_time - timedelta(minutes = 10)
       event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
     else:
