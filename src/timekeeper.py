@@ -53,10 +53,10 @@ class Timekeeper:
 
   def set_up_job(self, event):
     estimate_departure_time = event.start_time - event.estimate
-    print(event.start_time)
+    print("event start time {}".format(event.start_time))
     scheduled_time = max(event.start_time - event.estimate * 2,
                         (event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2)
-    print(scheduled_time)
+    print("scheduled time {}".format(scheduled_time))
     if scheduled_time >= event.start_time:
       self.invalid_event(event)
       return
