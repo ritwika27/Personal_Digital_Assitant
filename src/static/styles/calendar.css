@@ -98,7 +98,6 @@
     box-sizing: border-box;
     padding: 3px;
     font-size: 10px;
-    background-color: blue;
     border-radius: 3px;
     color: white;
     cursor: pointer;
@@ -259,7 +258,6 @@
     padding: 10px 3px;
     font-family: sans-serif;
     font-size: 10px;
-    background-color: blue;
     border-radius: 3px;
     color: white;
 

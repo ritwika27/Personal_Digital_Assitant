@@ -78,6 +78,7 @@ function populateDay(day, date) {
         const hoursPast = time.getHours() + (time.getMinutes() / 60);
         ele.style.top = "calc(100% / 24 *" + hoursPast.toString() + ")";
         ele.style.height = "calc(100% / 24 *" + (event.duration / 60).toString() + ")";
+        ele.style.backgroundColor = "hsl(" + event.color + ",100%,35%)";
         ele.setAttribute("class", "event");
         day.appendChild(ele);
     }

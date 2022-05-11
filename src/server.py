@@ -10,6 +10,7 @@ import time
 import logging
 from datetime import datetime, timezone, timedelta
 import signal
+from hashlib import md5
 
 # self defined modules
 from actor import Actor
@@ -103,7 +104,8 @@ def renderPage():
       "estimate": "soon-ish?",
       "duration": (event[2] - event[1]).total_seconds() / 60,
       "location": event[4],
-      "desc": event[3]
+      "desc": event[3],
+      "color": int(md5(str(event[5]).encode("utf-8")).hexdigest(), 16) % 360
     }
   eventData = list(map(mapData, events))
   upcomingData = mapData(upcoming)
