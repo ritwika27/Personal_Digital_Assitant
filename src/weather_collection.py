@@ -86,7 +86,7 @@ def get_weather_info(loc, start_time):
 def check_weather(weatherman):
     weather_data = getCurrentForecast(weatherman.curr_location)
     w = get_current_weather_info(weatherman.curr_location).format_dict()
-    flags = weatherman.notification_flags
+    print(weatherman.notification_flags)
     alert = ""
     notif = ""
     notify = False
@@ -96,17 +96,19 @@ def check_weather(weatherman):
         if w[key] <=value["min"]: 
             notif += (value["min_desc"] + " ")
             # check if this condition was already triggered, if not notify
-            if not flags[key]:
+            if not weatherman.notification_flags[key]:
                 notify = True
+                weatherman.notification_flags[key] = True
         elif w[key] >= value["max"]:
             notif += (value["max_desc"] + " ")
              # check if this condition was already triggered, if not notify
-            if not flags[key]:
+            if not weatherman.notification_flags[key]:
                 notify = True
+                weatherman.notification_flags[key] = True
         # if there is no condition worth notifying set back to false
         else: 
-            flags[key] = False
-
+            weatherman.notification_flags[key] = False
+    print(weatherman.notification_flags)
     if "alerts" in weather_data: 
         for a in weather_data["alerts"]:
             alert += a['event']
