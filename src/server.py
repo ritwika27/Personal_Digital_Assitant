@@ -103,7 +103,7 @@ def renderPage():
       "name": event[0],
       "time": start_time_withtz.strftime("%d %b %Y %H:%M"),
       "end": end_time_withtz.strftime("%d %b %Y %H:%M"),
-      "estimate": str(timedelta(seconds = int(event[7]))),
+      "estimate": str(timedelta(seconds = int(event[7]))) if event[7] != None else -1,
       "duration": (event[2] - event[1]).total_seconds() / 60,
       "location": event[4],
       "travelPrefs": event[6],
@@ -134,7 +134,6 @@ def addEvent():
     .astimezone()
     .astimezone(timezone.utc)
   )
-  print("start time at server {}".format(start_utc))
 
   sys.stdout.flush()
 
@@ -153,11 +152,24 @@ def addEvent():
   if msg.msg == -1:
     #TODO: Alert duplicated event
     pass
-
   return redirect(url_for('renderPage'))
 
 @app.route('/updateEvent', methods=['GET', 'POST'])
 def editEvent():
+  if actor == None:
+    print("running webserver independently, ignoring sending message")
+    return redirect(url_for('renderPage'))
+  actor.broadcast(Message(msg = request.values['eventId'], sender = actor.rank, receiver = Dest.SCHEDULER, msg_type = Msg_type.DELETE_EVENT))
+  start_utc = (
+    datetime.fromisoformat(request.values['start'])
+    .astimezone()
+    .astimezone(timezone.utc)
+  )
+  end_utc = (
+    datetime.fromisoformat(request.values['end'])
+    .astimezone()
+    .astimezone(timezone.utc)
+  )
   actor.send(
       gen_new_event_msg(
           request.values['address'],
@@ -169,6 +181,7 @@ def editEvent():
           request.values['description'],
           request.values['travelPrefs'],
           ))
+  msg = actor.recv(src=Dest.SCHEDULER, tag=Msg_type.CREATE_RESPONSE)
   return redirect(url_for('renderPage'))
 
 @app.route('/deleteEvent', methods=['GET', 'POST'])

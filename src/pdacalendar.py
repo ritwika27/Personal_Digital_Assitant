@@ -118,6 +118,7 @@ class Calendar:
         msg.sender = rank
         # broadcasting new event
         a.broadcast(msg, exclude=[Dest.WEB])
+        a.isend(Message(msg = 0, receiver = Dest.WEB, sender = rank, msg_type = Msg_type.CREATE_RESPONSE))
       elif msg.msg_type == Msg_type.UPDATE_USER_LOCATION:
         c.user_location = msg.msg
         if not init:
@@ -131,6 +132,7 @@ class Calendar:
         c.update_estimate(msg.msg.event_id, msg.msg.estimate)
       elif msg.msg_type == Msg_type.EVENT_EXPIRED:
         c.mark_event_passed(msg.msg)
+
 
   def add_event(self, 
       event_id, 
@@ -238,10 +240,9 @@ class Calendar:
 
       cur.execute("""
         UPDATE public."userData"
-        SET {column_name} = '{column_value}'
-        WHERE event_id = {event_id}
-        """)
-        #  """, (column_name, column_value, event_id))
+        SET {column_name} = {}
+        WHERE event_id = {}
+        """, (column_value, event_id))
       #   pref = cur.fetchall()
       con.commit()
       cur.close()
