@@ -238,9 +238,10 @@ class Calendar:
 
       cur.execute("""
         UPDATE public."userData"
-        SET %s = %s
-        WHERE event_id = %s
-        """, (column_name, column_value, event_id))
+        SET {column_name} = '{column_value}'
+        WHERE event_id = {event_id}
+        """)
+        #  """, (column_name, column_value, event_id))
       #   pref = cur.fetchall()
       con.commit()
       cur.close()
