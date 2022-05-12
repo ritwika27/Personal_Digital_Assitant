@@ -64,12 +64,10 @@ class Calendar:
     events = cur.fetchall()
     def mapData(event):
       e = Event(int(event[4]), event[5], None, Location(lat = event[7], lon=event[8], address = event[6]), self.user_location, event[1].replace(tzinfo=timezone.utc), event[2].replace(tzinfo=timezone.utc), event[0], event[3])
-      print(e.__str__())
       return e
     if len(events) == 0:
       return
     event_data = list(map(mapData, events))
-    print("mapping done")
     for e in event_data:
       msg = Message(msg = e, sender = self.actor.rank, receiver = Dest.TIMEKEEPER, msg_type = Msg_type.NEW_EVENT)
       if e.start_time < datetime.now().astimezone():
@@ -91,6 +89,13 @@ class Calendar:
       if msg.msg_type == Msg_type.NEW_EVENT:
         event = msg.msg
         print("start time at scheduler {}".format(event.start_time))
+        events = c.search_by_start_time_range(event.start_time, event.end_time)
+        print(events)
+        if events and len(events) != 0:
+          print("time conflict")
+          a.isend(Message(msg = -1, receiver = Dest.WEB, sender = rank, msg_type = Msg_type.CREATE_RESPONSE))
+          continue
+
 
         # fill up location information
         # assuming event location given in address, user location given in coordinates 
@@ -129,7 +134,10 @@ class Calendar:
         reply = msg.reply(0, Msg_type.DELETE_COMPLETED)
         a.isend(reply)
       elif msg.msg_type == Msg_type.UPDATE_ESTIMATE or msg.msg_type == Msg_type.RESPONSE_ESTIMATE:
-        c.update_estimate(msg.msg.event_id, msg.msg.estimate)
+        if msg.msg.weather and msg.msg.weather.pop > 50:
+          c.update_estimate(msg.msg.event_id, msg.msg.estimate + timedelta(minutes = 5))
+        else:
+          c.update_estimate(msg.msg.event_id, msg.msg.estimate)
       elif msg.msg_type == Msg_type.EVENT_EXPIRED:
         c.mark_event_passed(msg.msg)
 
@@ -321,21 +329,31 @@ class Calendar:
       cur = con.cursor()
 
       cur.execute(""" 
-        SELECT * 
+        SELECT * from 
+        (SELECT * 
         FROM public."userData" 
         WHERE event_start_time 
-        BETWEEN %s AND %s;
-      """,(int(rangeStart), int(rangeEnd)))
+        < %s AND event_end_time > %s) a 
+        FULL JOIN
+        (SELECT * 
+        FROM public."userData" 
+        WHERE event_start_time 
+        < %s AND event_end_time > %s) b
+        on a.event_id = b.event_id
+        ;
+      """,(rangeStart, rangeStart, rangeEnd, rangeEnd))
       ev = cur.fetchall()
       con.commit()
       cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
       print(error)
+      ev = None
     finally:
       if con is not None:
         con.close()
         data = json.dumps(ev, default=str)
         print(data)
+      return ev
     # search_by_start_time_range('2022-06-11 11:00:00', '2022-06-11 12:00:00')
 
   def get_previous_event_id(self, event_start_time):

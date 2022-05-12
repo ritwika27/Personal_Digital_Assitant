@@ -35,7 +35,10 @@ class Timekeeper:
       elif msg.msg_type == Msg_type.UPDATE_ESTIMATE or msg.msg_type == Msg_type.RESPONSE_ESTIMATE:
         if msg.msg.event_id in t.events:
           event = t.events[msg.msg.event_id]
-          event.estimate = msg.msg.estimate
+          if event.weather and event.weather.pop > 50:
+            event.estimate = msg.msg.estimate + timedelta(minutes = 5)
+          else:
+            event.estimate = msg.msg.estimate
           t.set_up_job(event)
       elif msg.msg_type == Msg_type.UPDATE_EVENT_WEATHER:
         if msg.msg.event_id in t.events:
@@ -53,13 +56,13 @@ class Timekeeper:
 
   def set_up_job(self, event):
     estimate_departure_time = event.start_time - event.estimate
-    print("event start time {}".format(event.start_time))
+    # print("event start time {}".format(event.start_time))
     scheduled_time = max(event.start_time - event.estimate * 2,
                         (event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2)
-    print("start_time - estimate * 2: {}".format(event.start_time - event.estimate*2))
-    print("start_time - estimate -start time - estimate - now: {}".format((event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2))
-    print("scheduled time {}".format(scheduled_time))
-    print("estimate time: {}".format(estimate_departure_time))
+    # print("start_time - estimate * 2: {}".format(event.start_time - event.estimate*2))
+    # print("start_time - estimate -start time - estimate - now: {}".format((event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2))
+    # print("scheduled time {}".format(scheduled_time))
+    # print("estimate time: {}".format(estimate_departure_time))
     if scheduled_time >= event.start_time:
       self.invalid_event(event)
       return

@@ -149,6 +149,7 @@ def addEvent():
           request.values['travelPrefs'],
           ))
   msg = actor.recv(src=Dest.SCHEDULER, tag=Msg_type.CREATE_RESPONSE)
+  time.sleep(0.2)
   if msg.msg == -1:
     #TODO: Alert duplicated event
     pass
