@@ -78,7 +78,7 @@ class Timekeeper:
 
   def notify_user(self, event):
     leave_msg = "You should leave for {}\t that starts at {}\t. The estimated travel time is {}\t".format(
-      event.title, str(event.start_time), str(event.estimate))
+      event.title, event.start_time.astimezone().strftime("%H:%M"), str(event.estimate))
     msg = Message(msg = {'estimate': event.estimate, 'msg': leave_msg}, msg_type = Msg_type.UPDATE_ESTIMATE, sender = self.actor.rank, receiver = Dest.WEB)
     self.actor.isend(msg)
 
