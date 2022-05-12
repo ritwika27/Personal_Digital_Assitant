@@ -149,12 +149,26 @@ def addEvent():
           request.values['description'],
           request.values['travelPrefs'],
           ))
-  time.sleep(0.2)
+  msg = actor.recv(src=Dest.SCHEDULER, tag=Msg_type.CREATE_RESPONSE)
+  if msg.msg == -1:
+    #TODO: Alert duplicated event
+    pass
+
   return redirect(url_for('renderPage'))
 
 @app.route('/updateEvent', methods=['GET', 'POST'])
 def editEvent():
-  print(request)
+  actor.send(
+      gen_new_event_msg(
+          request.values['address'],
+          start_utc,
+          end_utc,
+          request.values['title'],
+          user_lat,
+          user_lon,
+          request.values['description'],
+          request.values['travelPrefs'],
+          ))
   return redirect(url_for('renderPage'))
 
 @app.route('/deleteEvent', methods=['GET', 'POST'])
