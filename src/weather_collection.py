@@ -86,7 +86,6 @@ def get_weather_info(loc, start_time):
 def check_weather(weatherman):
     weather_data = getCurrentForecast(weatherman.curr_location)
     w = get_current_weather_info(weatherman.curr_location).format_dict()
-    print(weatherman.notification_flags)
     alert = ""
     notif = ""
     notify = False
@@ -116,6 +115,5 @@ def check_weather(weatherman):
             is_alert = False
         else: is_alert = True
         
-     
     return {"alert_msg": alert, "notification": notif, "notify": notify, "is_alert": is_alert}
 
