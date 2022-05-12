@@ -205,9 +205,21 @@ def checkUpdates():
       if msg.msg_type == Msg_type.UPDATE_ESTIMATE:
         pending_notifs.append(msg.msg['msg'])
         print("got update estimate messgae")
+      elif msg.msg_type == Msg_type.WEATHER_NOTIFICATION:
+        if msg.msg["is_alert"]:
+            pending_notifs.append("!!! " + msg.msg['alert_msg'] + " !!!")
+        else:
+            pending_notifs.append(msg.msg['notification'])
+        print("got weather message")
+      elif msg.msg_type == Msg_type.UPDATE_CURRENT_WEATHER:
+        updates["weather"] = {
+            "temp": msg.msg.temp,
+            "icon": msg.msg.weather_icon_url,
+        }
+        print("got current weather update")
       else:
         # TODO: do something for weather
-        print("got weather msg, ignoring")
+        print("got", msg.msg_type, "message")
         print(msg.msg.__str__())
   sys.stdout.flush()
 
@@ -217,10 +229,6 @@ def checkUpdates():
       "more": len(pending_notifs) > 0
     }
   else: updates["notifs"] = { "notif": "", "more": False }
-
-  if weather["updated"]:
-    updates["weather"] = weather.content;
-    weather["updated"] = False
 
   return Response(json.dumps(updates), status=200, mimetype='application/json')
 

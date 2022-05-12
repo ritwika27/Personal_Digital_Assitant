@@ -39,6 +39,16 @@
     margin-left: 5px;
 }
 
+#currentWeather p {
+    display: inline;
+}
+
+#currentWeather img {
+    float: right;
+    height: 15px;
+    width: 15px;
+}
+
 #week-view {
     height: 100%;
     width: 100%;

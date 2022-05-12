@@ -285,13 +285,14 @@ function openUpdateEventForm(data) {
 }
 
 
-function showNotification(notificationText) {
-    const fill = document.createTextNode(notificationText);
+function showNotification(notificationHTML) {
+    const fill = document.createElement("div");
+    fill.innerHTML = notificationHTML;
     popup(fill);
 }
 
 function updateWeather(weather) {
     const box = document.getElementById("currentWeather");
     // TODO: flesh out once I have full weather data going through
-    box.innerContent = weather;
+    box.innerHTML = `<p>${weather.temp}&#176;</p><img src="${weather.icon}">`;
 }
