@@ -55,7 +55,7 @@ class Calendar:
         event_end_time, 
         event_description, 
         event_id, 
-        preferences, 
+        preferences,
         event_location, 
         event_lat, 
         event_long
@@ -128,7 +128,7 @@ class Calendar:
         reply = msg.reply(0, Msg_type.DELETE_COMPLETED)
         a.isend(reply)
       elif msg.msg_type == Msg_type.UPDATE_ESTIMATE or msg.msg_type == Msg_type.RESPONSE_ESTIMATE:
-        pass
+        c.update_estimate(msg.msg.event_id, msg.msg.estimate)
       elif msg.msg_type == Msg_type.EVENT_EXPIRED:
         c.mark_event_passed(msg.msg)
 
@@ -198,6 +198,31 @@ class Calendar:
       if con is not None:
         con.close()
 
+  def update_estimate(self, event_id, estimate_time):
+    try:
+      con = psycopg2.connect(
+          database = "pda",
+          user = "postgres",
+          password = "pdapassword"
+          # database = "postgres",
+          # user = "farnazzamiri",
+          # password = "pgadmin"
+          )
+      cur = con.cursor()
+
+      cur.execute("""
+        UPDATE public."userData"
+        SET travel_time_estimate = %s
+        WHERE event_id = %s
+        """, (estimate_time.total_seconds(), event_id))
+      #   pref = cur.fetchall()
+      con.commit()
+      cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+      print(error)
+    finally:
+      if con is not None:
+        con.close()
         
   def update_event(self, column_name, column_value, event_id):
     try:

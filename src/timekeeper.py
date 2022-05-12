@@ -90,7 +90,7 @@ class Timekeeper:
     if event.event_id in self.events:
       del self.events[event.event_id]
 
-  def update_event(self, event, update):
+  def update_event(self, event):
     # scheduled_time = event.start_time - timedelta(minutes = 30)
     # self.scheduler.add_job(self.update_event_5min, 'date', run_date = scheduled_time, args=[event])
     #msg = self.gen_update_request_msg(event)

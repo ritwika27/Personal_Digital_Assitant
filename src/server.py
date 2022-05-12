@@ -71,12 +71,12 @@ def gen_new_event_msg(
 def renderPage():
   cur = con.cursor()
   cur.execute(f"""
-        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id, preferences
+        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id, preferences, travel_time_estimate
         FROM public."userData";
   """)
   events = cur.fetchall()
   cur.execute(f"""
-        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id, preferences
+        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id, preferences, travel_time_estimate
         FROM public."userData"
         WHERE event_start_time > now() AT TIME ZONE 'UTC'
         ORDER BY event_start_time
@@ -103,7 +103,7 @@ def renderPage():
       "name": event[0],
       "time": start_time_withtz.strftime("%d %b %Y %H:%M"),
       "end": end_time_withtz.strftime("%d %b %Y %H:%M"),
-      "estimate": "soon-ish?",
+      "estimate": str(timedelta(seconds = int(event[7]))),
       "duration": (event[2] - event[1]).total_seconds() / 60,
       "location": event[4],
       "travelPrefs": event[6],

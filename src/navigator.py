@@ -49,7 +49,7 @@ class Navigator:
     n = Navigator()
     a = Actor(rank, comm)
     m = Message(msg = n.generate_intialized_msg(Dest.NAVIGATOR), receiver = Dest.TIMEKEEPER, msg_type=Msg_type.INITIALIZED, sender = rank)
-    a.send(m)
+    a.isend(m)
     i = 0
 
     while True:
@@ -69,14 +69,18 @@ class Navigator:
         #get _estimate
         event.estimate = n.get_travel_time_estimate(n.curr_location.address, event.event_location.address, event.preference)
         navigator_msg = Message(msg = event, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.RESPONSE_ESTIMATE, sender = rank)
-        a.send(navigator_msg)
+        a.isend(navigator_msg)
+        navigator_msg.receiver = Dest.SCHEDULER
+        a.isend(navigator_msg)               
 
       elif tag == Msg_type.REQUEST_ESTIMATE:
         event = msg.msg
         # get estimate
         event.estimate = n.get_travel_time_estimate(n.curr_location.address, event.event_location.address, event.preference)
         navigator_msg = Message(msg = event, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.RESPONSE_ESTIMATE, sender = rank )
-        a.send(navigator_msg) 
+        a.isend(navigator_msg) 
+        navigator_msg.receiver = Dest.SCHEDULER
+        a.isend(navigator_msg)               
 
       elif tag == Msg_type.UPDATE_USER_LOCATION:
         n.curr_location = msg.msg
@@ -87,4 +91,6 @@ class Navigator:
         time = n.get_travel_time_estimate(n.curr_location.address, address, n.next_event.preference)
         n.next_event.estimate = time
         navigator_msg = Message(msg = n.next_event, receiver = Dest.TIMEKEEPER, msg_type=Msg_type.UPDATE_ESTIMATE, sender = rank )
-        a.send(navigator_msg)               
+        a.isend(navigator_msg)               
+        navigator_msg.receiver = Dest.SCHEDULER
+        a.isend(navigator_msg)               
