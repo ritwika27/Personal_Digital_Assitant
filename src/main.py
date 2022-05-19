@@ -18,13 +18,20 @@ rank = comm.Get_rank()
 logging.basicConfig(filename="var/logger_{}.log".format(Dest(rank).name), level=logging.DEBUG)
 
 
-if rank == Dest.SCHEDULER:
-  Calendar.run(rank, comm)
-elif rank == Dest.WEATHERMAN:
-  Weatherman.run(rank, comm)
-elif rank == Dest.WEB:
-  flaskrun(rank, comm)
-elif rank == Dest.TIMEKEEPER:
-  Timekeeper.run(rank, comm)
-elif rank == Dest.NAVIGATOR:
-  Navigator.run(rank, comm)
+count = 0
+
+while count < 5:
+  try:
+    if rank == Dest.SCHEDULER:
+      Calendar.run(rank, comm)
+    elif rank == Dest.WEATHERMAN:
+      Weatherman.run(rank, comm)
+    elif rank == Dest.WEB:
+      flaskrun(rank, comm)
+    elif rank == Dest.TIMEKEEPER:
+      Timekeeper.run(rank, comm)
+    elif rank == Dest.NAVIGATOR:
+      Navigator.run(rank, comm)
+  except:
+    count = count + 1
+

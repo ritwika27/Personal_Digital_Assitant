@@ -59,7 +59,7 @@ function dateAsId(dateObj) {
 function layoutTimeMarks() {
     const marks = document.getElementById("timeMarks");
     for (let i = 0; i < marks.children.length; i++) {
-        marks.children[i].style.top = "calc(100% / 13 * " + i.toString() + " - 10px)";
+        marks.children[i].style.top = "calc(100% / 24 * " + i.toString() + " - 10px)";
     }
 }
 
@@ -75,9 +75,10 @@ function populateDay(day, date) {
         const ele = createEvent(event);
         const time = new Date(Date.parse(event.time));
 
-        const hoursPast = time.getHours() - 7 + (time.getMinutes() / 60);
-        ele.style.top = "calc(100% / 13 *" + hoursPast.toString() + ")";
-        ele.style.height = "calc(100% / 13 *" + (event.duration / 60).toString() + ")";
+        const hoursPast = time.getHours() + (time.getMinutes() / 60);
+        ele.style.top = "calc(100% / 24 *" + hoursPast.toString() + ")";
+        ele.style.height = "calc(100% / 24 *" + (event.duration / 60).toString() + ")";
+        ele.style.backgroundColor = "hsl(" + event.color + ",100%,35%)";
         ele.setAttribute("class", "event");
         day.appendChild(ele);
     }
@@ -106,7 +107,7 @@ function openEventDetails(data) {
     time.setAttribute("class", "eventTime");
     const ttl = document.createElement("p");
     ttl.setAttribute("class", "eventEstimate");
-    ttl.textContent = "It will take " + data.estimate + " to arrive";
+    ttl.textContent = "It will take " + data.estimate + " to arrive by " + data.travelPrefs.toLowerCase();
     container.appendChild(title);
     container.appendChild(time);
     container.appendChild(ttl);
@@ -173,6 +174,10 @@ function openWeekSelector() {
 
 function openAddEventForm() {
     const shell = document.createElement("div");
+
+    const date = new Date();
+    const startTimeString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+    const endTimeString = new Date(date.getTime() - (date.getTimezoneOffset() - 60) * 60000).toISOString().slice(0, 16);
     shell.innerHTML = `
         <form id="addEventForm">
             <span>
@@ -181,15 +186,24 @@ function openAddEventForm() {
             </span>
             <span>
                 <label for="startTime">Start Time</label>
-                <input id="startTime" name="start" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}" required>
+                <input id="startTime" name="start" type="datetime-local" value="${startTimeString}" required>
             </span>
             <span>
                 <label for="endTime">End Time</label>
-                <input id="endTime" name="end" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}" required>
+                <input id="endTime" name="end" type="datetime-local" value="${endTimeString}" required>
             </span>
             <span>
                 <label for="location">Location</label>
                 <input id="location" name="address" value="" required>
+            </span>
+            <span>
+                <label for="method">Travel Preference</label>
+                <select id="travelPrefs" name="travelPrefs" required>
+                    <option value="Driving">Driving</option>
+                    <option value="Walking">Walking</option>
+                    <option value="Bicycling">Bicycling</option>
+                    <option value="Transit">Transit</option>
+                </select>
             </span>
             <span>
                 <label for="description">Description</label>
@@ -202,6 +216,9 @@ function openAddEventForm() {
     popup(shell);
 }
 
+function tzToISOFormat(date) {
+    return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+}
 
 function openUpdateEventForm(data) {
     const shell = document.createElement("div");
@@ -209,13 +226,24 @@ function openUpdateEventForm(data) {
 		if(data){
 			initial = {
 				"id": data.id || "",
-				"name": data.name || "",
+				"name": data.name.substring(1, data.name.length - 1) || "",
 				"time": data.time || "",
 				"duration": data.duration || "",
-				"location": data.location || "",
-				"desc": data.desc || ""
+				"location": data.location.substring(1, data.location.length - 1) || "",
+				"desc": data.desc || "",
+                "travelPrefs": data.travelPrefs || "",
 			}
 		}
+		console.log(initial)
+    const date = new Date();    // This is in local tz
+    const laterDate = new Date(Date.now() + 60000 * 60);
+    const startTime = new Date(initial.time);
+    const endTime = new Date(Date.parse(initial.time) + 60000 * initial.duration);
+
+    const currentTimeString = tzToISOFormat(date);
+    const currentLaterTimeString = tzToISOFormat(laterDate);
+    const startTimeString = tzToISOFormat(startTime);
+    const endTimeString = tzToISOFormat(endTime);
     shell.innerHTML = `
         <form id="addEventForm">
             <span>
@@ -224,15 +252,24 @@ function openUpdateEventForm(data) {
             </span>
             <span>
                 <label for="startTime">Start Time</label>
-                <input id="startTime" name="start" type="datetime-local" value="${(initial.time ? new Date(initial.time) : new Date()).toISOString().slice(0, 16)}" required>
+                <input id="startTime" name="start" type="datetime-local" value="${(initial.time ? startTimeString : currentTimeString)}" required>
             </span>
             <span>
                 <label for="endTime">End Time</label>
-                <input id="endTime" name="end" type="datetime-local" value="${(initial.time ? (new Date(Date.parse(initial.time) + 60000 * initial.duration)) : (new Date())).toISOString().slice(0, 16)}" required>
+                <input id="endTime" name="end" type="datetime-local" value="${(initial.time ? endTimeString : currentLaterTimeString)}" required>
             </span>
             <span>
                 <label for="location">Location</label>
                 <input id="location" name="address" value="${initial.location}" required>
+            </span>
+            <span>
+                <label for="method">Travel Preference</label>
+                <select id="travelPrefs" name="travelPrefs" required>
+                    <option value="Driving" ${(initial.travelPrefs === "Driving" ? "selected" : "")}>Driving</option>
+                    <option value="Walking" ${(initial.travelPrefs === "Walking" ? "selected" : "")}>Walking</option>
+                    <option value="Bicycling" ${(initial.travelPrefs === "Bicycling" ? "selected" : "")}>Bicycling</option>
+                    <option value="Transit" ${(initial.travelPrefs === "Transit" ? "selected" : "")}>Transit</option>
+                </select>
             </span>
             <span>
                 <label for="description">Description</label>
@@ -248,13 +285,14 @@ function openUpdateEventForm(data) {
 }
 
 
-function showNotification(notificationText) {
-    const fill = document.createTextNode(notificationText);
+function showNotification(notificationHTML) {
+    const fill = document.createElement("div");
+    fill.innerHTML = notificationHTML;
     popup(fill);
 }
 
 function updateWeather(weather) {
     const box = document.getElementById("currentWeather");
     // TODO: flesh out once I have full weather data going through
-    box.innerContent = weather;
+    box.innerHTML = `<p>${weather.temp}&#176;</p><img src="${weather.icon}">`;
 }

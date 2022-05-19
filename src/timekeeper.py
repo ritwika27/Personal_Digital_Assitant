@@ -1,7 +1,8 @@
 import logging
 import sys
 from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import time
 
 
 
@@ -32,34 +33,53 @@ class Timekeeper:
       elif msg.msg_type == Msg_type.NEW_EVENT:
         t.events[msg.msg.event_id] = msg.msg
       elif msg.msg_type == Msg_type.UPDATE_ESTIMATE or msg.msg_type == Msg_type.RESPONSE_ESTIMATE:
-        if msg.msg['event_id'] in t.events:
-          event = t.events[msg.msg['event_id']]
-          event.estimate = msg.msg['travel_time']
+        if msg.msg.event_id in t.events:
+          event = t.events[msg.msg.event_id]
+          if event.weather and event.weather.pop > 50:
+            event.estimate = msg.msg.estimate + timedelta(minutes = 5)
+          else:
+            event.estimate = msg.msg.estimate
           t.set_up_job(event)
       elif msg.msg_type == Msg_type.UPDATE_EVENT_WEATHER:
         if msg.msg.event_id in t.events:
           event = t.events[msg.msg.event_id]
-          # event.weather = msg.msg['percentage of precepitation']
-
+          event.weather = msg.msg.weather #contains all weather information, to extract only precipitation: msg.msg.weather.pop
+      elif msg.msg_type == Msg_type.DELETE_EVENT:
+        # remove this event from scheduler
+        event_id = msg.msg
+        if event_id in t.events:
+          event = t.events[msg.msg]
+          if event.job:
+            event.job.remove()
+          del t.events[event_id]
       sys.stdout.flush()
 
   def set_up_job(self, event):
+    estimate_departure_time = event.start_time - event.estimate
+    # print("event start time {}".format(event.start_time))
     scheduled_time = max(event.start_time - event.estimate * 2,
-                        event.start_time - (event.start_time - datetime.now())/2)
+                        (event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2)
+    # print("start_time - estimate * 2: {}".format(event.start_time - event.estimate*2))
+    # print("start_time - estimate -start time - estimate - now: {}".format((event.start_time - event.estimate) - ((event.start_time - event.estimate) - datetime.now().astimezone())/2))
+    # print("scheduled time {}".format(scheduled_time))
+    # print("estimate time: {}".format(estimate_departure_time))
     if scheduled_time >= event.start_time:
       self.invalid_event(event)
       return
-    if scheduled_time - event.start_time <= timedelta(minutes = 5):
+    if estimate_departure_time - scheduled_time <= timedelta(minutes = 10):
       self.notify_user(event) 
-    elif scheduled_time - event.start_time <= timedelta(minutes = 30):
-      scheduled_time = event.start_time - timedelta(minutes = 5)
-      self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
+      event.job = self.scheduler.add_job(self.event_expire, 'date', run_date = event.start_time, args=[event])
+    elif estimate_departure_time - scheduled_time <= timedelta(minutes = 30):
+      scheduled_time = estimate_departure_time - timedelta(minutes = 10)
+      event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
     else:
-      self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
+      event.job = self.scheduler.add_job(self.update_event, 'date', run_date = scheduled_time, args=[event])
     logging.info("set up done, will be executed {}".format(scheduled_time))
 
   def notify_user(self, event):
-    msg = Message(msg = {'estimate': event.estimate, 'msg': "should leave"}, msg_type = Msg_type.UPDATE_ESTIMATE, sender = self.actor.rank, receiver = Dest.WEB)
+    leave_msg = "You should leave for {}\t that starts at {}\t. The estimated travel time is {}\t".format(
+      event.title, event.start_time.astimezone().strftime("%H:%M"), str(event.estimate))
+    msg = Message(msg = {'estimate': event.estimate, 'msg': leave_msg}, msg_type = Msg_type.UPDATE_ESTIMATE, sender = self.actor.rank, receiver = Dest.WEB)
     self.actor.isend(msg)
 
   def invalid_event(self, event):
@@ -67,15 +87,21 @@ class Timekeeper:
     print("ERROR: event starts too soon")
     logging.error("event starts too soon")
 
-  def update_event(self, event, update):
+  def event_expire(self, event):
+    self.actor.broadcast(Message(msg = event.event_id, sender = self.actor.rank, receiver = Dest.SCHEDULER, msg_type = Msg_type.EVENT_EXPIRED), [Dest.WEB])
+    event.job = None
+    if event.event_id in self.events:
+      del self.events[event.event_id]
+
+  def update_event(self, event):
     # scheduled_time = event.start_time - timedelta(minutes = 30)
     # self.scheduler.add_job(self.update_event_5min, 'date', run_date = scheduled_time, args=[event])
-    msg = self.gen_update_request_msg(event)
-    logging.info("at 30 minutes prior to event")
-    self.actor.isend(Message(msg = msg, msg_type=Msg_type.REQUEST_ESTIMATE, sender = self.actor.rank, receiver = Dest.NAVIGATOR))
+    #msg = self.gen_update_request_msg(event)
+    logging.info("at {} minutes prior to event", event.estimate)
+    self.actor.isend(Message(msg = event, msg_type=Msg_type.REQUEST_ESTIMATE, sender = self.actor.rank, receiver = Dest.NAVIGATOR))
 
-  def gen_update_request_msg(self, event):
-    msg = {"event_id": event.event_id,
-        "prefernece": event.preference,
-        "location": event.event_location}
-    return msg
+  # def gen_update_request_msg(self, event):
+  #   msg = {"event_id": event.event_id,
+  #       "prefernece": event.preference,
+  #       "location": event.event_location}
+  #   return msg

@@ -20,7 +20,7 @@ weather_trigger_params = {
     'temp': {"min": 30 , "max": 85 , "min_desc": "Bring a Jacket! It's cold!", "max_desc": "It's over 85 degrees today!"},
     'pop': {"min": 0, "max": 60,  "min_desc": "No rain today!", "max_desc": "Bring an umbrella! It's going to rain today!"}, 
     'humidity': {"min": 0, "max": 60,  "min_desc": "It's dry today!", "max_desc": "It's really humid today!"},
-    'wind_speed': {"min": 0, "max": 10 ,  "min_desc": "There's no wind today", "max_desc": "Be careful! Its really windy!"}
+    'wind_speed': {"min": 0, "max": 7 ,  "min_desc": "There's no wind today", "max_desc": "Be careful! Its really windy!"}
 }
 
 # params:  datettime object as input
@@ -34,8 +34,6 @@ def convert_unix_time_to_utc(unix_time):
     return datetime.fromtimestamp(unix_time, datetime.timezone.utc)
 
 def getHourlyForecast(loc):
-    #exclude = "current,minutely,daily"
-    #url = "https://api.openweathermap.org/data/2.5/onecall?lat=%s&lon=%s&exclude=%s&appid=%s&units=imperial" % (loc.lat, loc.lon, exclude, api_key)
     url = "https://api.openweathermap.org/data/2.5/onecall?lat=%s&lon=%s&appid=%s&units=imperial" % (loc.lat, loc.lon, api_key)
     response = rq.get(url)
     data = json.loads(response.text)
@@ -62,7 +60,7 @@ class Weather:
     def format_dict(self): 
         return {"temp":self.temp, "pop": self.pop, "humidity": self.humidity, "wind_speed": self.wind_speed}
 
-
+# return a weather object
 def get_current_weather_info(loc):
     data = getCurrentForecast(loc)
     current = data["current"]
@@ -70,42 +68,52 @@ def get_current_weather_info(loc):
     url = weather_icon_url  + icon_code + url_2
     w = Weather(current["temp"], data["hourly"][0]["pop"] *100, current["humidity"], current["wind_speed"], current["weather"][0]["description"], url)
     return w
-    
+
+#returns a weather object    
 def get_weather_info(loc, start_time):
     data = getHourlyForecast(loc)
     unix_time = convert_utc_to_unix(start_time) 
     w = Weather() 
     for forecast in data:
         unix_time = int(unix_time)
-        # print(unix_time)
-        # print(unix_time % hour)
-        # print(forecast["dt"])
         if forecast["dt"] == unix_time - (unix_time % hour): 
             icon_code = forecast['weather'][0]['icon']
             url = weather_icon_url  + icon_code + url_2
             w = Weather(forecast["temp"], forecast["pop"] *100, forecast["humidity"], forecast["wind_speed"], forecast["weather"][0]["description"], url)
             return w
 
-def check_weather(loc):
-    data = getHourlyForecast(loc)
-    print(data)
-    print(data["minutely"])
-    w = get_current_weather_info(loc).format_dict()
-    print(w)
-    # alert = ""
-    # notif = ""
-    # notify = False
-    # is_alert = False
-    # for key in weather_trigger_params: 
-    #     value = weather_trigger_params[key]
-    #     if w[key] <=value["min"]: 
-    #         notif += (value["min_desc"] + " ")
-    #         notify = True
-    #     if w[key] >= value["max"]:
-    #         notif += (value["max_desc"] + " ")
-    #         notify = True
-
-    #TODO Add alert check
-     
-    #return {"alert_msg": alert, "notification": notif, "notify": notify, "is_alert": is_alert}
+# check if the user needs to be notified about the current weather conditions 
+def check_weather(weatherman):
+    weather_data = getCurrentForecast(weatherman.curr_location)
+    w = get_current_weather_info(weatherman.curr_location).format_dict()
+    alert = ""
+    notif = ""
+    notify = False
+    is_alert = False
+    for key in weather_trigger_params: 
+        value = weather_trigger_params[key]
+        if w[key] <=value["min"]: 
+            notif += (value["min_desc"] + " ")
+            # check if this condition was already triggered, if not notify
+            if not weatherman.notification_flags[key]:
+                notify = True
+                weatherman.notification_flags[key] = True
+        elif w[key] >= value["max"]:
+            notif += (value["max_desc"] + " ")
+             # check if this condition was already triggered, if not notify
+            if not weatherman.notification_flags[key]:
+                notify = True
+                weatherman.notification_flags[key] = True
+        # if there is no condition worth notifying set back to false
+        else: 
+            weatherman.notification_flags[key] = False
+    print(weatherman.notification_flags)
+    if "alerts" in weather_data: 
+        for a in weather_data["alerts"]:
+            alert += a['event']
+        if weatherman.last_alert_msg == alert:
+            is_alert = False
+        else: is_alert = True
+        
+    return {"alert_msg": alert, "notification": notif, "notify": notify, "is_alert": is_alert}
 

@@ -8,8 +8,9 @@ import psycopg2
 import sys
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import signal
+from hashlib import md5
 
 # self defined modules
 from actor import Actor
@@ -27,7 +28,7 @@ app = Flask(__name__)
 actor = None
 
 # notifications from backend entities
-pending_notifs = ["testing first notification"]
+pending_notifs = []
 weather = {
   "updated": False,
   "content": tuple(),
@@ -70,14 +71,15 @@ def gen_new_event_msg(
 def renderPage():
   cur = con.cursor()
   cur.execute(f"""
-        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id
+        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id, preferences, travel_time_estimate
         FROM public."userData";
   """)
   events = cur.fetchall()
   cur.execute(f"""
-        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id
+        SELECT event_title, event_start_time, event_end_time, event_description, event_location, event_id, preferences, travel_time_estimate
         FROM public."userData"
-        ORDER BY event_passed DESC, event_start_time
+        WHERE event_start_time > now() AT TIME ZONE 'UTC'
+        ORDER BY event_start_time
         FETCH FIRST ROW ONLY;
   """);
   upcoming = cur.fetchone()
@@ -86,15 +88,27 @@ def renderPage():
   # TODO: Swap cursor execution out for messages to/from pdacalendar
   # TODO: Plug in actual estimate from database
   def mapData(event):
+    if event == None:
+      return
+    # Set to UTC
+    start_time_withtz = event[1].replace(tzinfo=timezone.utc)
+    end_time_withtz = event[2].replace(tzinfo=timezone.utc)
+
+    # Localize to the local timezone (i.e. EST)
+    start_time_withtz = start_time_withtz.astimezone()
+    end_time_withtz = end_time_withtz.astimezone()
+
     return {
       "id": event[5],
       "name": event[0],
-      "time": event[1].strftime("%d %b %Y %H:%M"),
-      "end": event[2].strftime("%d %b %Y %H:%M"),
-      "estimate": "soon-ish?",
+      "time": start_time_withtz.strftime("%d %b %Y %H:%M"),
+      "end": end_time_withtz.strftime("%d %b %Y %H:%M"),
+      "estimate": str(timedelta(seconds = int(event[7]))) if event[7] != None else -1,
       "duration": (event[2] - event[1]).total_seconds() / 60,
       "location": event[4],
-      "desc": event[3]
+      "travelPrefs": event[6],
+      "desc": event[3],
+      "color": int(md5(str(event[5]).encode("utf-8")).hexdigest(), 16) % 360
     }
   eventData = list(map(mapData, events))
   upcomingData = mapData(upcoming)
@@ -106,37 +120,80 @@ def renderPage():
 
 @app.route('/addEvent', methods=['GET', 'POST'])
 def addEvent():
-  # print(request)
-  # print(datetime.strptime(request.values['start'], time_format))
   if actor == None:
     print("running webserver independently, ignoring sending message")
     return redirect(url_for('renderPage'))
 
-  print("start {}\tend {}".format(request.values['start'],
-          request.values['end']))
+  start_utc = (
+    datetime.fromisoformat(request.values['start'])
+    .astimezone()
+    .astimezone(timezone.utc)
+  )
+  end_utc = (
+    datetime.fromisoformat(request.values['end'])
+    .astimezone()
+    .astimezone(timezone.utc)
+  )
+
   sys.stdout.flush()
+
   actor.send(
       gen_new_event_msg(
           request.values['address'],
-          datetime.strptime(request.values['start'], time_format),
-          datetime.strptime(request.values['end'], time_format),
+          start_utc,
+          end_utc,
           request.values['title'],
           user_lat,
           user_lon,
           request.values['description'],
-          'placeholder' #TODO: change to actual value
+          request.values['travelPrefs'],
           ))
-
+  msg = actor.recv(src=Dest.SCHEDULER, tag=Msg_type.CREATE_RESPONSE)
+  time.sleep(0.2)
+  if msg.msg == -1:
+    #TODO: Alert duplicated event
+    pass
   return redirect(url_for('renderPage'))
 
 @app.route('/updateEvent', methods=['GET', 'POST'])
 def editEvent():
-  print(request)
+  if actor == None:
+    print("running webserver independently, ignoring sending message")
+    return redirect(url_for('renderPage'))
+  actor.broadcast(Message(msg = request.values['eventId'], sender = actor.rank, receiver = Dest.SCHEDULER, msg_type = Msg_type.DELETE_EVENT))
+  start_utc = (
+    datetime.fromisoformat(request.values['start'])
+    .astimezone()
+    .astimezone(timezone.utc)
+  )
+  end_utc = (
+    datetime.fromisoformat(request.values['end'])
+    .astimezone()
+    .astimezone(timezone.utc)
+  )
+  actor.send(
+      gen_new_event_msg(
+          request.values['address'],
+          start_utc,
+          end_utc,
+          request.values['title'],
+          user_lat,
+          user_lon,
+          request.values['description'],
+          request.values['travelPrefs'],
+          ))
+  msg = actor.recv(src=Dest.SCHEDULER, tag=Msg_type.CREATE_RESPONSE)
   return redirect(url_for('renderPage'))
 
 @app.route('/deleteEvent', methods=['GET', 'POST'])
 def deleteEvent():
   print(request)
+  actor.broadcast(Message(msg = request.values['eventId'], sender = actor.rank, receiver = Dest.SCHEDULER, msg_type = Msg_type.DELETE_EVENT))
+  msg = actor.recv(src=Dest.SCHEDULER, tag=Msg_type.DELETE_COMPLETED)
+
+  if msg != 0:
+    logging.error("Deletion failed!")
+
   return redirect(url_for('renderPage'))
 
 @app.route('/checkUpdates')
@@ -148,9 +205,21 @@ def checkUpdates():
       if msg.msg_type == Msg_type.UPDATE_ESTIMATE:
         pending_notifs.append(msg.msg['msg'])
         print("got update estimate messgae")
+      elif msg.msg_type == Msg_type.WEATHER_NOTIFICATION:
+        if msg.msg["is_alert"]:
+            pending_notifs.append("!!! " + msg.msg['alert_msg'] + " !!!")
+        else:
+            pending_notifs.append(msg.msg['notification'])
+        print("got weather message")
+      elif msg.msg_type == Msg_type.UPDATE_CURRENT_WEATHER:
+        updates["weather"] = {
+            "temp": msg.msg.temp,
+            "icon": msg.msg.weather_icon_url,
+        }
+        print("got current weather update")
       else:
         # TODO: do something for weather
-        print("got weather msg, ignoring")
+        print("got", msg.msg_type, "message")
         print(msg.msg.__str__())
   sys.stdout.flush()
 
@@ -160,10 +229,6 @@ def checkUpdates():
       "more": len(pending_notifs) > 0
     }
   else: updates["notifs"] = { "notif": "", "more": False }
-
-  if weather["updated"]:
-    updates["weather"] = weather.content;
-    weather["updated"] = False
 
   return Response(json.dumps(updates), status=200, mimetype='application/json')
 

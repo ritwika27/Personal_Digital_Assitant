@@ -2,7 +2,7 @@
 
 class Event():
   def __init__(self, event_id, preference, weather, event_location, user_location, start_time, end_time, title, description):
-    self.event_id = event_id
+    self.event_id = int(event_id)
     self.preference = preference
     self.weather = weather
     self.event_location = event_location
@@ -14,6 +14,7 @@ class Event():
     self.estimate = None # type datetime.timedelta
     self.scheduled_update_time = None
     self.scheduler_status = None
+    self.job = None
 
 
   def __str__(self):
