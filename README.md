@@ -21,6 +21,9 @@ https://console.cloud.google.com/
 Under credientials create API key
 Download the api key and store it in APIkey.txt
 
+go to https://openweathermap.org/full-price#current and create a free account (OpenWeatherAPI)
+Download the api key and store it in weather_api.txt
+
 Create a python virtual environment
 ``python3 -m venv``
 and activate it
